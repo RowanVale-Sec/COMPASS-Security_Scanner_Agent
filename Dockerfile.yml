@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install security scanning tools
+RUN pip install --no-cache-dir \
+    checkov \
+    bandit \
+    semgrep \
+    boto3 \
+    azure-identity \
+    agent-framework \
+    numpy \
+    scikit-learn \
+    --pre
+
+# Install Trivy
+RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+WORKDIR /app
+COPY Security_Scanner_Agent.py /app/
+
+ENV PYTHONUNBUFFERED=1
+
+# Wait for MITRE MCP to be ready before starting
+CMD ["sh", "-c", "sleep 10 && python Security_Scanner_Agent.py"]

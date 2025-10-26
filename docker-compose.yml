@@ -1,0 +1,48 @@
+services:
+  # MITRE ATT&CK MCP Server - Persistent HTTP service
+  mitre-mcp:
+    build:
+      context: ./mitre-mcp-main
+      dockerfile: Dockerfile
+    image: mitre-mcp-server:latest
+    container_name: mitre-mcp-server
+    ports:
+      - "8000:8000"  # Internal only - exposed for host debugging
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  security-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.yml
+    image: security-agent:latest
+    container_name: security-agent
+    depends_on:
+      - mitre-mcp
+    volumes:
+      - ./Flask-project-Test:/scan:ro
+    environment:
+      # Scan Configuration
+      SCAN_FOLDER_PATH: /scan
+      S3_BUCKET: ${S3_BUCKET}
+      
+      # MITRE MCP Server - Streamable HTTP endpoint at /mcp
+      MITRE_MCP_URL: http://mitre-mcp:8000/mcp
+      
+      # Azure OpenAI API Key
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
+      AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${AZURE_OPENAI_CHAT_DEPLOYMENT_NAME:-gpt-4o}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-gpt-4o}
+      
+      # AWS S3 API Keys
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+    networks:
+      - agent-network
+
+networks:
+  agent-network:
+    driver: bridge

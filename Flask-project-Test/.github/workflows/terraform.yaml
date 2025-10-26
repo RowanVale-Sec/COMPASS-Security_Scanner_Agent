@@ -1,0 +1,118 @@
+name: "Terraform Infrastructure Change Management Pipeline"
+
+on:
+    push:
+      branches:
+      - main
+      paths:
+      - terraform/**
+    pull_request:
+      paths:
+        - terraform/**
+permissions:
+      id-token: write # This is required for requesting the JWT through OIDC
+      contents: read # This is required for actions/checkout
+      pull-requests: write # This is required for gh bot to comment PR
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: terraform
+    steps:
+        # Check out the code
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+        # Set workflow variables
+      - name: Set variables
+        run: |
+          ROLE_ARN_RUNNER=$(cat pre-deploy/role-arn.txt)
+          echo "ROLE_ARN=$ROLE_ARN_RUNNER" >> $GITHUB_ENV
+
+        # Configure AWS credentials for authentication
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_ARN }}
+          role-session-name: terraformdeploy
+          aws-region: ${{ vars.AWS_REGION }}
+
+        # Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+        # Terraform fmt
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+
+        # Terraform Init
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+        # Terraform Validate
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+        # Terraform Plan
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+
+        # Comment on Pull Request with Terraform Plan details
+      - uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            <details><summary>Validation Output</summary>
+
+            \`\`\`\n
+            ${{ steps.validate.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+        # Terraform Plan Status
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+        # Terraform Apply on push to main branch
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
