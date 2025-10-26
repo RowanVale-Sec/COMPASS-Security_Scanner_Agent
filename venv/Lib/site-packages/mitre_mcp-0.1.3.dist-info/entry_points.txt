@@ -1,0 +1,2 @@
+[console_scripts]
+mitre-mcp = mitre_mcp.mitre_mcp_server:main
