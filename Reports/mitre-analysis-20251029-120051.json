@@ -1,0 +1,985 @@
+{
+  "metadata": {
+    "analysis_date": "2025-10-29T12:00:51.765860",
+    "total_findings": 31,
+    "mitre_mcp_url": "http://mitre-mcp:8000/mcp",
+    "source_file": "s3://my-security-scans/scan-results/agent-scan-20251029-115911-deduplicated.json",
+    "tool_distribution": {
+      "C": 12,
+      "T": 13,
+      "B": 1,
+      "S": 5
+    }
+  },
+  "FND-C-1": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/data.tf",
+      "finding_title": "Reduce potential for WhoAMI cloud image name confusion attack",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-supply-chain-policies/bc-aws-386",
+      "resource_type": "aws_ami",
+      "resource_name": "amazon-linux-2023",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1557",
+      "technique_name": "Adversary-in-the-Middle",
+      "tactic": "Credential Access",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The named AWS AMI could be targeted by an adversary to perform name-based attacks, leading to confusion and potentially provisioning an adversary-controlled image. This aligns with the 'Adversary-in-the-Middle' technique, where attackers exploit resource confusion or misidentification for malicious activity. The severity is adjusted to HIGH due to the possibility of unauthorized deployment affecting cloud environments."
+    }
+  },
+  "FND-C-2": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/ecr.tf",
+      "finding_title": "Ensure that ECR repositories are encrypted using KMS",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-ecr-repositories-are-encrypted",
+      "resource_type": "aws_ecr_repository",
+      "resource_name": "ecr",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Checkov",
+        "Trivy"
+      ],
+      "duplicate_count": 8,
+      "merged_from_indices": [
+        1,
+        2,
+        3,
+        6,
+        7,
+        19,
+        36,
+        66
+      ],
+      "combined_recommendations": [
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/supply-chain-policies/terraform-policies/ensure-terraform-module-sources-use-git-url-with-commit-hash-revision",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-kubernetes-policies/bc-aws-kubernetes-3",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-general-24",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/general-8",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-ecr-repositories-are-encrypted",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-buckets-are-encrypted-with-kms-by-default",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-52",
+        "Use customer managed keys"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1560.001",
+      "technique_name": "Archive via Utility",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "This technique matches the vulnerability as ECR repositories without encryption are susceptible to unauthorized access and data exfiltration. Encrypting data helps mitigate the risk of adversaries collecting and exfiltrating sensitive container images or information. The severity is adjusted to HIGH given the potential impact of such data exposure."
+    }
+  },
+  "FND-C-3": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/eks.tf",
+      "finding_title": "Ensure Terraform module sources use a commit hash",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/supply-chain-policies/terraform-policies/ensure-terraform-module-sources-use-git-url-with-commit-hash-revision",
+      "resource_type": "N/A",
+      "resource_name": "cert_manager_irsa_role",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Checkov"
+      ],
+      "duplicate_count": 3,
+      "merged_from_indices": [
+        4,
+        5,
+        26
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1556.003",
+      "technique_name": "Pluggable Authentication Modules",
+      "tactic": "Credential Access",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "This finding corresponds to potential vulnerabilities in the software supply chain through configuration mismanagement, as it leaves room for adversaries to inject malicious code into initialized components. The MITRE technique T1556.003 discusses exploitation of authentication mechanisms and configurations, which can align with the risk posed by insecure module sourcing in a cloud architecture."
+    }
+  },
+  "FND-C-4": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/main.tf",
+      "finding_title": "Ensure Amazon EKS control plane logging is enabled for all log types",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-kubernetes-policies/bc-aws-kubernetes-4",
+      "resource_type": "aws_eks_cluster",
+      "resource_name": "module.eks.aws_eks_cluster.this",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Checkov",
+        "Trivy",
+        "Semgrep"
+      ],
+      "duplicate_count": 7,
+      "merged_from_indices": [
+        8,
+        10,
+        11,
+        35,
+        67,
+        68,
+        91
+      ],
+      "combined_recommendations": [
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-338",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-kubernetes-policies/bc-aws-kubernetes-2",
+        "Enable Kubernetes API server component logs (\"api\") and audit logs (\"audit\") of the EKS control plane through the enabled_cluster_log_types attribute.",
+        "Enable logging for the EKS control plane",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-13-enable-logging",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-kubernetes-policies/bc-aws-kubernetes-4"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "UNMAPPED",
+      "technique_name": "Unable to map",
+      "tactic": "Unknown",
+      "adjusted_severity": "N/A",
+      "confidence": "LOW",
+      "rationale": "Extracting the threat behavior from finding FND-C-4:\n\n1. **Threat Behavior**:\n   - **Security risk**: The absence of Amazon EKS control plane logging introduces risks related to insufficient monitoring and detection capabilities, which can lead to **undetected unauthorized access**, **data breaches**, or **operation failure detections**, making it harder to identify or respond to malicious activities.\n   - **Attack vector enabled**: This vulnerability could facilitate **unauthorized access**, **"
+    }
+  },
+  "FND-C-5": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/main.tf",
+      "finding_title": "Ensure Amazon EKS public endpoint not accessible to 0.0.0.0/0",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-kubernetes-policies/bc-aws-kubernetes-1",
+      "resource_type": "aws_eks_cluster",
+      "resource_name": "module.eks.aws_eks_cluster.this",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "checkov",
+        "Checkov",
+        "Trivy",
+        "Semgrep"
+      ],
+      "duplicate_count": 11,
+      "merged_from_indices": [
+        9,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        60,
+        69,
+        70,
+        90
+      ],
+      "combined_recommendations": [
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/ensure-iam-policies-do-not-allow-write-access-without-constraint",
+        "Explicitly disable public endpoint access in the vpc_config resource of the EKS cluster.",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-341",
+        "Set the instance to not be publicly accessible",
+        "Don't enable public access to EKS Clusters",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-356",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-kubernetes-policies/bc-aws-kubernetes-1",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-general-31"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "UNMAPPED",
+      "technique_name": "Unable to map",
+      "tactic": "Unknown",
+      "adjusted_severity": "N/A",
+      "confidence": "LOW",
+      "rationale": "Analyzing the security finding \"Ensure Amazon EKS public endpoint not accessible to 0.0.0.0/0,\" this reflects a critical network security misconfiguration. Exposing the public endpoint to 0.0.0.0/0 means adversaries could potentially access Kubernetes resources without restriction, enabling unauthorized access or further attacks like privilege escalation.\n\nLet's match this behavior using MITRE ATT&CK techniques focused on unauthorized access, cloud vulnerabilities, and potential lateral movement"
+    }
+  },
+  "FND-C-6": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/dynamo.tf",
+      "finding_title": "Ensure DynamoDB point in time recovery (backup) is enabled",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/general-6",
+      "resource_type": "aws_dynamodb_table",
+      "resource_name": "terraform-lock",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Checkov",
+        "Trivy"
+      ],
+      "duplicate_count": 4,
+      "merged_from_indices": [
+        18,
+        27,
+        31,
+        73
+      ],
+      "combined_recommendations": [
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-auto-scaling-is-enabled-on-your-dynamodb-tables",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/general-6",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-bucket-has-cross-region-replication-enabled",
+        "Enable point in time recovery"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1490",
+      "technique_name": "Inhibit System Recovery",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights the lack of backup recovery mechanisms for DynamoDB, which could enable attackers to destroy data without recovery options, falling under Inhibit System Recovery (T1490). This makes the system vulnerable to impactful data destruction attacks, necessitating a HIGH severity rating."
+    }
+  },
+  "FND-C-7": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/github.tf",
+      "finding_title": "Ensure IAM policies does not allow write access without constraints",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-290",
+      "resource_type": "aws_iam_role_policy",
+      "resource_name": "gha_oidc_terraform_permissions",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Checkov",
+        "Trivy",
+        "Semgrep"
+      ],
+      "duplicate_count": 11,
+      "merged_from_indices": [
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        37,
+        75,
+        96,
+        98,
+        99
+      ],
+      "combined_recommendations": [
+        "Restrict IAM policies to specific resources to prevent data exfiltration actions.",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-287",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-355",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-286",
+        "Create more restrictive S3 policies",
+        "Specify which user the permission should be used on or avoid using the listed actions.",
+        "Review IAM policies to ensure they do not allow resource exposure. Avoid actions like `ecr:SetRepositoryPolicy` and use alternatives that do not expose AWS resources.",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-288",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-2-40",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-290",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-289"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1098.003",
+      "technique_name": "Additional Cloud Roles",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "Unrestricted IAM policies can allow adversaries to escalate privileges by assigning additional roles with elevated access, exposing the cloud environment to unauthorized actions. This directly enables privilege escalation and could lead to widespread access compromise, justifying the severity adjustment to 'Critical'."
+    }
+  },
+  "FND-C-8": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/zones.tf",
+      "finding_title": "Ensure Domain Name System Security Extensions (DNSSEC) signing is enabled for Amazon Route 53 public hosted zones",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/bc-aws-2-38",
+      "resource_type": "aws_route53_zone",
+      "resource_name": "aws_route53_zone.main",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Checkov"
+      ],
+      "duplicate_count": 2,
+      "merged_from_indices": [
+        28,
+        34
+      ],
+      "combined_recommendations": [
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-39",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/bc-aws-2-38"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1557",
+      "technique_name": "Adversary-in-the-Middle",
+      "tactic": "Credential Access",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The absence of DNSSEC allows adversaries to exploit vulnerabilities in DNS queries through spoofing or interception, facilitating AiTM attacks. Without DNSSEC, public DNS zones become vulnerable to data manipulation and unauthorized redirection, with significant risks for compromising domain integrity and user information."
+    }
+  },
+  "FND-C-9": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/s3.tf",
+      "finding_title": "Ensure that S3 bucket has a Public Access block",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/s3-bucket-should-have-public-access-blocks-defaults-to-false-if-the-public-access-block-is-not-attached",
+      "resource_type": "aws_s3_bucket",
+      "resource_name": "terraform-bucket",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Checkov",
+        "Trivy"
+      ],
+      "duplicate_count": 9,
+      "merged_from_indices": [
+        29,
+        32,
+        33,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81
+      ],
+      "combined_recommendations": [
+        "Enable ignoring the application of public ACLs in PUT calls",
+        "Prevent policies that allow public access being PUT",
+        "Enable blocking any PUT calls with a public ACL specified",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-62",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-61",
+        "Define a aws_s3_bucket_public_access_block for the given bucket to control public access policies",
+        "Limit the access to public buckets to only the owner or AWS Services (eg; CloudFront)",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/s3-bucket-should-have-public-access-blocks-defaults-to-false-if-the-public-access-block-is-not-attached",
+        "Add a logging block to the resource to enable access logging"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1530",
+      "technique_name": "Data from Cloud Storage",
+      "tactic": "Collection",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding indicates that the S3 bucket lacks a Public Access Block, which could expose it to unauthorized access and allow adversaries to collect data from cloud storage. This aligns with the MITRE ATT&CK technique T1530, where attackers target misconfigured cloud storage for data exfiltration. Given the potential for sensitive data leakage, the severity is adjusted to HIGH."
+    }
+  },
+  "FND-C-10": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/main.tf",
+      "finding_title": "Ensure that Security Groups are attached to another resource",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-that-security-groups-are-attached-to-ec2-instances-or-elastic-network-interfaces-enis",
+      "resource_type": "aws_security_group",
+      "resource_name": "module.eks.aws_security_group.cluster[0]",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1205.002",
+      "technique_name": "Socket Filters",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "Although the described behavior doesn't immediately translate to active exploitation, misconfigured Security Groups represent a severe risk of unauthorized network access or privilege escalation. Without safeguards, adversaries could exploit ingress/egress rules to bypass network defenses."
+    }
+  },
+  "FND-C-11": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/Dockerfile",
+      "finding_title": "Ensure that APT isn't used",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/docker-policies/docker-policy-index/ensure-docker-apt-is-not-used",
+      "resource_type": "Docker",
+      "resource_name": "/Dockerfile.RUN",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1218",
+      "technique_name": "System Binary Proxy Execution",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "This aligns with T1218 because adversaries may exploit legitimate system binaries like `apt` for unintended purposes, embedding malicious activity in typical binary or script executions within containerized environments. Original severity is adjusted to HIGH due to the broad application of this technique for defense evasion across development and production workflows."
+    }
+  },
+  "FND-C-12": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/Dockerfile",
+      "finding_title": "Ensure that HEALTHCHECK instructions have been added to container images",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/docker-policies/docker-policy-index/ensure-that-healthcheck-instructions-have-been-added-to-container-images",
+      "resource_type": "Docker",
+      "resource_name": "/Dockerfile.",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Checkov",
+        "Trivy"
+      ],
+      "duplicate_count": 2,
+      "merged_from_indices": [
+        39,
+        40
+      ],
+      "combined_recommendations": [
+        "Add HEALTHCHECK instruction in Dockerfile",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/docker-policies/docker-policy-index/ensure-that-healthcheck-instructions-have-been-added-to-container-images"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The absence of `HEALTHCHECK` directives impacts container monitoring, which weakens defenses against adversarial discovery attempts focusing on container environments. This specific technique is appropriate because it includes queries that seek resource or container details, such as health indicators. Without proper health checks, defenders lose visibility into runtime issues, potentially aiding adversarial reconnaissance."
+    }
+  },
+  "FND-T-1": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Can elevate its own privileges",
+      "description": "A program inside the container can elevate its own privileges and run as root, which might give the program control over the container and node.",
+      "recommendation": "Set 'set containers[].securityContext.allowPrivilegeEscalation' to 'false'.",
+      "resource_type": "Kubernetes Deployment",
+      "resource_name": "flask-app",
+      "severity": "MEDIUM",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Trivy"
+      ],
+      "duplicate_count": 7,
+      "merged_from_indices": [
+        41,
+        43,
+        45,
+        47,
+        54,
+        57,
+        58
+      ],
+      "combined_recommendations": [
+        "Set 'set containers[].securityContext.allowPrivilegeEscalation' to 'false'.",
+        "Specify seccomp either by annotation or by seccomp profile type having allowed values as per pod security standards",
+        "Change 'containers[].securityContext.readOnlyRootFilesystem' to 'true'.",
+        "Specify at least one unneeded capability in 'containers[].securityContext.capabilities.drop'",
+        "To enhance security, it is strongly recommended not to rely on the default security context. Instead, it is advisable to explicitly define the required security parameters (such as runAsNonRoot, capabilities, readOnlyRootFilesystem, etc.) within the security context.",
+        "Set 'containers[].securityContext.runAsNonRoot' to true."
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1611",
+      "technique_name": "Escape to Host",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The security finding indicates that a program inside the container can elevate its privileges to run as root, risking control of the container and potentially enabling a container escape to the underlying host. This behavior matches the MITRE ATT&CK technique T1611 - Escape to Host, which is categorized under Privilege Escalation. The ability to escape to the underlying host can lead to compromising the entire node. Given the impact, the severity is marked as CRITICAL and the confidence level is HIGH."
+    }
+  },
+  "FND-T-2": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Default capabilities: some containers do not drop all",
+      "description": "The container should drop all default capabilities and add only those that are needed for its execution.",
+      "recommendation": "Add 'ALL' to containers[].securityContext.capabilities.drop.",
+      "resource_type": "Kubernetes Deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Trivy"
+      ],
+      "duplicate_count": 6,
+      "merged_from_indices": [
+        42,
+        48,
+        49,
+        50,
+        53,
+        55
+      ],
+      "combined_recommendations": [
+        "Set 'spec.containers[*].securityContext.capabilities.drop' to 'ALL' and only add 'NET_BIND_SERVICE' to 'spec.containers[*].securityContext.capabilities.add'.",
+        "Set 'containers[].resources.requests.memory'.",
+        "Set 'spec.securityContext.seccompProfile.type', 'spec.containers[*].securityContext.seccompProfile' and 'spec.initContainers[*].securityContext.seccompProfile' to 'RuntimeDefault' or undefined.",
+        "Set 'containers[].resources.requests.cpu'.",
+        "Add 'ALL' to containers[].securityContext.capabilities.drop.",
+        "Set a limit value under 'containers[].resources.limits.memory'."
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1610",
+      "technique_name": "Deploy Container",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights insufficient restriction of container capabilities, which can allow attackers to exploit misconfigurations for defense evasion by deploying containers with improper security contexts. Since the attack surface is limited to the container environment, its severity is raised to medium due to the potential exploitation scope."
+    }
+  },
+  "FND-T-3": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "CPU not limited",
+      "description": "Enforcing CPU limits prevents DoS via resource exhaustion.",
+      "recommendation": "Set a limit value under 'containers[].resources.limits.cpu'.",
+      "resource_type": "Kubernetes Deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights the absence of CPU limits on a Kubernetes Deployment, which can allow adversaries to exhaust resources via discovery of containers and their resource configurations. This technique fits under 'Container and Resource Discovery' (T1613), as adversaries may query such settings to gather operational data for potential exploitation. Discovery findings typically have medium severity unless directly exploited."
+    }
+  },
+  "FND-T-4": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Image tag \":latest\" used",
+      "description": "It is best to avoid using the ':latest' image tag when deploying containers in production. Doing so makes it hard to track which version of the image is running, and hard to roll back the version.",
+      "recommendation": "Use a specific container image tag that is not 'latest'.",
+      "resource_type": "Kubernetes Deployment",
+      "resource_name": "flask-app",
+      "severity": "MEDIUM",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1578.005",
+      "technique_name": "Modify Cloud Compute Configurations",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "Using ':latest' for container images may allow attackers to exploit cloud configurations or deploy outdated/unsecured versions invisibly. This technique falls under 'Modify Cloud Compute Configurations' in Defense Evasion according to MITRE ATT&CK, as it can help conceal or manipulate operational integrity while avoiding detection."
+    }
+  },
+  "FND-T-5": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Runs with UID <= 10000",
+      "description": "Force the container to run with user ID > 10000 to avoid conflicts with the host\u2019s user table.",
+      "recommendation": "Set 'containers[].securityContext.runAsUser' to an integer > 10000.",
+      "resource_type": "Kubernetes Deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Trivy"
+      ],
+      "duplicate_count": 2,
+      "merged_from_indices": [
+        51,
+        52
+      ],
+      "combined_recommendations": [
+        "Set 'containers[].securityContext.runAsUser' to an integer > 10000.",
+        "Set 'containers[].securityContext.runAsGroup' to an integer > 10000."
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1611",
+      "technique_name": "Escape to Host",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "This finding relates to the potential for privilege escalation by misconfiguring container user IDs in Kubernetes Deployments, specifically with user IDs less than or equal to 10000, which might conflict with host accounts. Mapping this to MITRE ATT&CK, 'Escape to Host' is a suitable technique as improper user configuration could open paths for malicious access to the host. However, due to the severity and exploit potential being limited by operational safeguards, the adjusted severity is deemed MEDIUM."
+    }
+  },
+  "FND-T-6": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Workloads in the default namespace",
+      "description": "Checks whether a workload is running in the default namespace.",
+      "recommendation": "Set 'metadata.namespace' to a non-default namespace.",
+      "resource_type": "Kubernetes",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding indicates a misconfiguration where workloads are operating in the default Kubernetes namespace. This misconfiguration can enable adversaries to discover containers and resources that are more vulnerable to enumeration and potential exploitation. Mapping to MITRE's T1613 technique\u2014focused on Container and Resource Discovery\u2014provides insight into how adversaries may leverage this vulnerability for further reconnaissance actions. Severity is adjusted to MEDIUM, considering its exploitability mainly for discovery rather than direct compromise."
+    }
+  },
+  "FND-T-7": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform-aws-modules/vpc/aws/main.tf",
+      "finding_title": "Instances in a subnet should not receive a public IP address by default.",
+      "description": "You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.",
+      "recommendation": "Set the instance to not be publicly accessible",
+      "resource_type": "aws_subnet",
+      "resource_name": "aws_subnet.public[0]",
+      "severity": "HIGH",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Trivy"
+      ],
+      "duplicate_count": 3,
+      "merged_from_indices": [
+        59,
+        61,
+        72
+      ],
+      "combined_recommendations": [
+        "Set the instance to not be publicly accessible",
+        "Set a more restrictive cidr range"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1133",
+      "technique_name": "External Remote Services",
+      "tactic": "Initial Access",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights a misconfiguration where instances could receive public IP addresses by default, exposing them to external remote access. This aligns with T1133 as adversaries exploit external-facing services for unauthorized access. Adjusted severity remains HIGH due to significant exposure risk and the impact on resource security."
+    }
+  },
+  "FND-T-8": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/vpc.tf",
+      "finding_title": "VPC Flow Logs is a feature that enables you to capture information about the IP traffic going to and from network interfaces in your VPC. After you've created a flow log, you can view and retrieve its data in Amazon CloudWatch Logs. It is recommended that VPC Flow Logs be enabled for packet \"Rejects\" for VPCs.",
+      "description": "VPC Flow Logs provide visibility into network traffic that traverses the VPC and can be used to detect anomalous traffic or insight during security workflows.",
+      "recommendation": "Enable flow logs for VPC",
+      "resource_type": "aws_vpc",
+      "resource_name": "module.vpc",
+      "severity": "MEDIUM",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1040",
+      "technique_name": "Network Sniffing",
+      "tactic": "Discovery",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "Lack of VPC flow logs impairs visibility into network traffic, increasing risk of successful reconnaissance or malicious activities such as lateral movement or data exfiltration. Network logging aligns strongly with T1040 in mitigating these risks."
+    }
+  },
+  "FND-T-9": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/data.tf",
+      "finding_title": "AWS AMI data source should specify owners",
+      "description": "AWS AMI data source should specify owners to avoid using unverified AMIs. The owners field helps ensure you're using AMIs from known and trusted sources.",
+      "recommendation": "Specify the owners field in the AWS AMI data source configuration",
+      "resource_type": "data.aws_ami",
+      "resource_name": "amazon-linux-2023",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1592",
+      "technique_name": "Gather Victim Host Information",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The absence of owner validation in AMI selection exposes the system to unauthorized introduction of compromised virtual machine images, which aligns with attackers seeking host-specific information for exploitation. Adjusted severity is medium due to the potential for unauthorized targeting but low direct impact without further exploitation."
+    }
+  },
+  "FND-T-10": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/ecr.tf",
+      "finding_title": "ECR repository has image scans disabled.",
+      "description": "Repository image scans should be enabled to ensure vulnerable software can be discovered and remediated as soon as possible.",
+      "recommendation": "Enable ECR image scanning",
+      "resource_type": "aws_ecr_repository",
+      "resource_name": "ecr",
+      "severity": "HIGH",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Trivy",
+        "Semgrep"
+      ],
+      "duplicate_count": 3,
+      "merged_from_indices": [
+        64,
+        88,
+        89
+      ],
+      "combined_recommendations": [
+        "Set `image_tag_mutability` to IMMUTABLE in the ECR repository configuration.",
+        "Enable image scanning on push for the ECR repository to ensure vulnerabilities are detected early.",
+        "Enable ECR image scanning"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "This security finding relates to a failure to enable image scanning in an AWS Elastic Container Registry (ECR). Without image scanning, critical vulnerabilities in container images may not be identified or remediated. This enables adversaries to exploit unpatched vulnerabilities in containers, which aligns with the Container and Resource Discovery technique under the Discovery tactic. As this misconfiguration directly impacts the container security lifecycle, maintaining HIGH severity highlights the potential risk."
+    }
+  },
+  "FND-T-11": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/ecr.tf",
+      "finding_title": "ECR images tags shouldn't be mutable.",
+      "description": "ECR images should be set to IMMUTABLE to prevent code injection through image mutation.\nThis can be done by setting <code>image_tag_mutability</code> to <code>IMMUTABLE</code>\n",
+      "recommendation": "Only use immutable images in ECR",
+      "resource_type": "aws_ecr_repository",
+      "resource_name": "ecr",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1553",
+      "technique_name": "Subvert Trust Controls",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The risk of allowing mutable ECR image tags aligns with 'Subvert Trust Controls' since images can be changed, bypassing trust validation mechanisms. Adversaries could alter container images to inject malicious code while evading trust-based integrity checks."
+    }
+  },
+  "FND-T-12": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/modules/terraform-aws-eks/modules/karpenter/main.tf",
+      "finding_title": "IAM Pass Role Filtering",
+      "description": "Ensures any IAM pass role attached to roles are flagged and warned.",
+      "recommendation": "Resolve permission escalations by denying pass role'",
+      "resource_type": "aws_iam_policy_document",
+      "resource_name": "irsa",
+      "severity": "MEDIUM",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1098.003",
+      "technique_name": "Additional Cloud Roles",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The identified issue enables privilege escalation via insecure AWS IAM policies that allow 'iam:PassRole.' This is a significant risk in cloud environments where malicious actors may use elevated permissions to access or control sensitive resources. Raised severity due to the potential for unauthorized privilege escalation in critical cloud-native environments."
+    }
+  },
+  "FND-T-13": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/pre-deploy/dynamo.tf",
+      "finding_title": "DynamoDB tables should use at rest encryption with a Customer Managed Key",
+      "description": "Using AWS managed keys does not allow for fine grained control. DynamoDB tables are encrypted by default using AWS managed encryption keys. To increase control of the encryption and control the management of factors like key rotation, use a Customer Managed Key.",
+      "recommendation": "Enable server side encryption with a customer managed key",
+      "resource_type": "aws_dynamodb_table",
+      "resource_name": "terraform-lock",
+      "severity": "LOW",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Trivy",
+        "Semgrep"
+      ],
+      "duplicate_count": 3,
+      "merged_from_indices": [
+        74,
+        82,
+        94
+      ],
+      "combined_recommendations": [
+        "Configure your own AWS KMS encryption key to protect your data in the DynamoDB table. You can either create a new aws_kms_key resource or use the ARN of an existing key in your AWS account.",
+        "Enable encryption using customer managed keys",
+        "Enable server side encryption with a customer managed key"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1600",
+      "technique_name": "Weaken Encryption",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights insufficient encryption using AWS-managed keys instead of customer-managed keys for DynamoDB tables. This allows adversaries greater potential for unauthorized decryption or data exposure. The severity is adjusted to HIGH due to implications for data confidentiality, aligning with the MITRE technique T1600 (Weaken Encryption)."
+    }
+  },
+  "FND-B-1": {
+    "finding": {
+      "tool_name": "Bandit",
+      "file_path": "/scan/app/web.py",
+      "finding_title": "Possible binding to all interfaces",
+      "description": "The code binds the application to all network interfaces, which may expose it to external access. CWE-605: https://cwe.mitre.org/data/definitions/605.html",
+      "recommendation": "Restrict the binding to specific interfaces or use a configuration setting to control the binding behavior. Refer to: https://bandit.readthedocs.io/en/1.8.6/plugins/b104_hardcoded_bind_all_interfaces.html",
+      "resource_type": "Python function",
+      "resource_name": "__main__",
+      "severity": "MEDIUM",
+      "scan_type": "SAST"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1205.002",
+      "technique_name": "Socket Filters",
+      "tactic": "Network Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "Binding an application to all network interfaces can expose the application to external threats. Attackers could exploit this configuration to potentially install network socket filters for evasion, persistence, or command and control. While the original severity is Medium, the potential network exposure makes it a High risk."
+    }
+  },
+  "FND-S-1": {
+    "finding": {
+      "tool_name": "Semgrep",
+      "file_path": "/scan/app/test_web.py",
+      "finding_title": "Hardcoded variable `TESTING` detected",
+      "description": "Hardcoded variable `TESTING` detected. Use environment variables or config files instead",
+      "recommendation": "Avoid hardcoding configuration variables like `TESTING`. Use environment variables or configuration files to manage such settings.",
+      "resource_type": "Python function",
+      "resource_name": "TESTING",
+      "severity": "LOW",
+      "scan_type": "SAST"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1602",
+      "technique_name": "Data from Configuration Repository",
+      "tactic": "Collection",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "Hardcoded variables like `TESTING` can be exploited by adversaries to gather sensitive data stored in configuration repositories, enabling escalation or persistence. While the severity is originally `LOW`, the context of leaked configurations elevates the risk, though it does not directly escalate privileges or impact the system runtime drastically."
+    }
+  },
+  "FND-S-2": {
+    "finding": {
+      "tool_name": "Semgrep",
+      "file_path": "/scan/app/web.py",
+      "finding_title": "Avoid running Flask app with host 0.0.0.0",
+      "description": "Running flask app with host 0.0.0.0 could expose the server publicly.",
+      "recommendation": "Configure the Flask app to use a more restrictive host, such as 127.0.0.1, to prevent public exposure.",
+      "resource_type": "Python function",
+      "resource_name": "N/A",
+      "severity": "HIGH",
+      "scan_type": "SAST"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1071.001",
+      "technique_name": "Application Layer Protocol: Web Protocols",
+      "tactic": "Command and Control",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding identifies a Flask application configured to run on `0.0.0.0`, making it publicly accessible. This could expose the web application to external HTTP communications, which is categorized under the MITRE ATT&CK technique T1071.001 (Web Protocols) as adversaries may exploit publicly available web services for unauthorized command and control. Given the potential for abuse, exposure of the application on the public interface is classified as HIGH severity since it can result in unauthorized access and control."
+    }
+  },
+  "FND-S-3": {
+    "finding": {
+      "tool_name": "Semgrep",
+      "file_path": "/scan/helm/templates/deployment.yaml",
+      "finding_title": "Run container as non-root user",
+      "description": "When running containers in Kubernetes, it's important to ensure that they are properly secured to prevent privilege escalation attacks. One potential vulnerability is when a container is allowed to run applications as the root user, which could allow an attacker to gain access to sensitive resources. To mitigate this risk, it's recommended to add a `securityContext` to the container, with the parameter `runAsNonRoot` set to `true`. This will ensure that the container runs as a non-root user, limiting the damage that could be caused by any potential attacks. By adding a `securityContext` to the container in your Kubernetes pod, you can help to ensure that your containerized applications are more secure and less vulnerable to privilege escalation attacks.",
+      "recommendation": "spec:\n      securityContext:\n        runAsNonRoot: true #",
+      "resource_type": "kubernetes",
+      "resource_name": "N/A",
+      "severity": "INFO",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Semgrep"
+      ],
+      "duplicate_count": 2,
+      "merged_from_indices": [
+        86,
+        87
+      ],
+      "combined_recommendations": [
+        "securityContext:\n          allowPrivilegeEscalation: false\n        name",
+        "spec:\n      securityContext:\n        runAsNonRoot: true #"
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1611",
+      "technique_name": "Escape to Host",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The issue can lead to privilege escalation if a container running as a root user is compromised, allowing attackers to potentially manipulate the host environment. The recommendation to use 'securityContext: runAsNonRoot: true' mitigates this risk."
+    }
+  },
+  "FND-S-4": {
+    "finding": {
+      "tool_name": "Semgrep",
+      "file_path": "/scan/terraform/modules/terraform-aws-eks/modules/eks-managed-node-group/main.tf",
+      "finding_title": "EC2 launch template has Instance Metadata Service Version 1 (IMDSv1) enabled",
+      "description": "The EC2 launch template has Instance Metadata Service Version 1 (IMDSv1) enabled. IMDSv2 introduced session authentication tokens which improve security when talking to IMDS. You should either disable IMDS or require the use of IMDSv2.",
+      "recommendation": "Disable IMDS or require the use of IMDSv2 to improve security.",
+      "resource_type": "aws_ec2_launch_template",
+      "resource_name": "N/A",
+      "severity": "MEDIUM",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Semgrep"
+      ],
+      "duplicate_count": 2,
+      "merged_from_indices": [
+        92,
+        93
+      ],
+      "combined_recommendations": [
+        "Disable IMDS or require the use of IMDSv2.",
+        "Disable IMDS or require the use of IMDSv2 to improve security."
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The enabled IMDSv1 allows adversaries to potentially access Instance Metadata Service without session authentication (IMDSv2). This weakness exposes credentials and other sensitive data, which could grant unauthorized access using 'Valid Accounts'. The severity is elevated to HIGH as this can facilitate broader Defense Evasion and credential exploitation in a cloud environment."
+    }
+  },
+  "FND-S-5": {
+    "finding": {
+      "tool_name": "Semgrep",
+      "file_path": "/scan/terraform/pre-deploy/github.tf",
+      "finding_title": "Ensure IAM policies don't allow credentials exposure",
+      "description": "Credentials exposure actions return credentials as part of the API response, and can possibly lead to leaking important credentials. Instead, use another action that doesn't return sensitive data as part of the API response.",
+      "recommendation": "Review IAM policies to ensure they do not allow actions that return sensitive credentials in API responses. Use alternative actions that do not expose sensitive data.",
+      "resource_type": "terraform",
+      "resource_name": "N/A",
+      "severity": "LOW",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Semgrep"
+      ],
+      "duplicate_count": 2,
+      "merged_from_indices": [
+        95,
+        97
+      ],
+      "combined_recommendations": [
+        "Avoid using actions that can result in privilege escalation. Refer to the provided links for mitigation strategies.",
+        "Review IAM policies to ensure they do not allow actions that return sensitive credentials in API responses. Use alternative actions that do not expose sensitive data."
+      ]
+    },
+    "mitre_analysis": {
+      "technique_id": "T1552.005",
+      "technique_name": "Cloud Instance Metadata API",
+      "tactic": "Credential Access",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The described finding involves ensuring IAM policies prevent exposure of sensitive credentials via API responses, which aligns with adversaries exploiting cloud misconfigurations. Allowing sensitive operations in IAM policies could lead to credential leakage, therefore enabling adversaries to access unauthorized data or manipulate cloud environments."
+    }
+  }
+}
