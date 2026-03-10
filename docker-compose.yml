@@ -1,48 +1,167 @@
+version: '3.8'
+
+# =============================================================================
+# COMPASS - Cloud Operations Management Platform for Application Security Systems
+# Unified Docker Compose for all agents and MCP servers
+# =============================================================================
+
 services:
-  # MITRE ATT&CK MCP Server - Persistent HTTP service
+  # ---------------------------------------------------------------------------
+  # MCP Servers
+  # ---------------------------------------------------------------------------
+
   mitre-mcp:
     build:
-      context: ./mitre-mcp-main
+      context: ./mcp_servers/mitre
       dockerfile: Dockerfile
-    image: mitre-mcp-server:latest
-    container_name: mitre-mcp-server
+    container_name: compass-mitre-mcp
     ports:
-      - "8000:8000"  # Internal only - exposed for host debugging
-    restart: unless-stopped
+      - "8000:8000"
     networks:
-      - agent-network
+      - compass-net
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('localhost', 8000), timeout=2)\" 2>/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
-  security-agent:
+  syft-mcp:
     build:
       context: .
-      dockerfile: Dockerfile.yml
-    image: security-agent:latest
-    container_name: security-agent
-    depends_on:
-      - mitre-mcp
+      dockerfile: mcp_servers/syft/Dockerfile
+    container_name: compass-syft-mcp
     volumes:
-      - ./Flask-project-Test:/scan:ro
-    environment:
-      # Scan Configuration
-      SCAN_FOLDER_PATH: /scan
-      S3_BUCKET: ${S3_BUCKET}
-      
-      # MITRE MCP Server - Streamable HTTP endpoint at /mcp
-      MITRE_MCP_URL: http://mitre-mcp:8000/mcp
-      
-      # Azure OpenAI API Key
-      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT}
-      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
-      AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${AZURE_OPENAI_CHAT_DEPLOYMENT_NAME:-gpt-4o}
-      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-gpt-4o}
-      
-      # AWS S3 API Keys
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_REGION: ${AWS_REGION:-us-east-1}
+      - ./test_targets/Flask-project-Test:/workspace:ro
     networks:
-      - agent-network
+      - compass-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ---------------------------------------------------------------------------
+  # Scanner Agent
+  # ---------------------------------------------------------------------------
+
+  scanner-agent:
+    build:
+      context: .
+      dockerfile: agents/scanner/Dockerfile
+    container_name: compass-scanner-agent
+    depends_on:
+      mitre-mcp:
+        condition: service_healthy
+    volumes:
+      - ./test_targets/Flask-project-Test:/scan:ro
+    ports:
+      - "8090:8090"
+    env_file: .env
+    environment:
+      COMPASS_MODE: server
+      SCANNER_PORT: "8090"
+      SCAN_FOLDER_PATH: /scan
+      MITRE_MCP_URL: http://mitre-mcp:8000/mcp
+    networks:
+      - compass-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Inventory Agent
+  # ---------------------------------------------------------------------------
+
+  inventory-agent:
+    build:
+      context: .
+      dockerfile: agents/inventory/Dockerfile
+    container_name: compass-inventory-agent
+    depends_on:
+      syft-mcp:
+        condition: service_healthy
+    volumes:
+      - ./test_targets/Flask-project-Test:/scan:ro
+    ports:
+      - "8091:8091"
+    env_file: .env
+    environment:
+      COMPASS_MODE: server
+      INVENTORY_PORT: "8091"
+      SCAN_FOLDER_PATH: /scan
+      SYFT_MCP_URL: http://syft-mcp:8080
+    networks:
+      - compass-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Threat Model Agent
+  # ---------------------------------------------------------------------------
+
+  threat-model-agent:
+    build:
+      context: .
+      dockerfile: agents/threat_model/Dockerfile
+    container_name: compass-threat-model-agent
+    ports:
+      - "8092:8092"
+    env_file: .env
+    environment:
+      COMPASS_MODE: server
+      THREAT_MODEL_PORT: "8092"
+    networks:
+      - compass-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8092/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Orchestrator Agent
+  # ---------------------------------------------------------------------------
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: agents/orchestrator/Dockerfile
+    container_name: compass-orchestrator
+    depends_on:
+      scanner-agent:
+        condition: service_healthy
+      inventory-agent:
+        condition: service_healthy
+      threat-model-agent:
+        condition: service_healthy
+    ports:
+      - "8093:8093"
+    env_file: .env
+    environment:
+      COMPASS_MODE: server
+      ORCHESTRATOR_PORT: "8093"
+      SCANNER_URL: http://scanner-agent:8090
+      INVENTORY_URL: http://inventory-agent:8091
+      THREAT_MODEL_URL: http://threat-model-agent:8092
+    networks:
+      - compass-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8093/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
 networks:
-  agent-network:
+  compass-net:
     driver: bridge
