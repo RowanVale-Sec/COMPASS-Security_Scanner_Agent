@@ -1,0 +1,2417 @@
+{
+  "metadata": {
+    "analysis_date": "2026-03-10T10:34:43.278703",
+    "total_findings": 111,
+    "mitre_mcp_url": "http://mitre-mcp:8000/mcp",
+    "source_file": "s3://my-security-scans-demo/scan-results/scan-results-20260310-103333-deduplicated.json",
+    "tool_distribution": {
+      "C": 35,
+      "U": 59,
+      "B": 1,
+      "TS": 10,
+      "TG": 6
+    }
+  },
+  "FND-C-1": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/data.tf",
+      "finding_title": "Reduce potential for WhoAMI cloud image name confusion attack",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-supply-chain-policies/bc-aws-386",
+      "resource_type": "aws_ami",
+      "resource_name": "amazon-linux-2023",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1592",
+      "technique_name": "Gather Victim Host Information",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding references a potential for confusion in cloud image names, which aligns with information-gathering activities. This aligns with 'Gather Victim Host Information' under the Discovery tactic, as adversaries may leverage misconfigurations or ambiguities during this stage."
+    }
+  },
+  "FND-C-2": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/ecr.tf",
+      "finding_title": "Ensure that ECR repositories are encrypted using KMS",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-ecr-repositories-are-encrypted",
+      "resource_type": "aws_ecr_repository",
+      "resource_name": "ecr",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding indicates that the ECR repositories lack encryption using KMS. This relates to adversaries' ability to discover misconfigurations or weaknesses in containerized environments and resources, exposing security risks. The severity is adjusted to MEDIUM as it aligns with the Discovery tactic, which deals with gathering information about systems and resources potentially for follow-on exploitation."
+    }
+  },
+  "FND-C-3": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/ecr.tf",
+      "finding_title": "Ensure ECR image scanning on push is enabled",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/general-8",
+      "resource_type": "aws_ecr_repository",
+      "resource_name": "ecr",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to enabling ECR image scanning on push, which concerns identifying and assessing artifacts within a containerized environment. This behavior matches the MITRE ATT&CK technique T1613 under the Discovery tactic. Discovery techniques generally have a medium severity based on the provided context."
+    }
+  },
+  "FND-C-4": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/ecr.tf",
+      "finding_title": "Ensure ECR Image Tags are immutable",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-general-24",
+      "resource_type": "aws_ecr_repository",
+      "resource_name": "ecr",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to ECR (Elastic Container Registry) image tag immutability, which if not enforced, could allow adversaries to manipulate or replace container images. This aligns with the MITRE technique T1613, as attackers may attempt to discover container resources and exploit misconfigurations for malicious purposes."
+    }
+  },
+  "FND-C-5": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/main.tf",
+      "finding_title": "Ensure Terraform module sources use a commit hash",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/supply-chain-policies/terraform-policies/ensure-terraform-module-sources-use-git-url-with-commit-hash-revision",
+      "resource_type": "module",
+      "resource_name": "module.eks.kms",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The finding relates to Terraform module source definition practices, specifically the use of commit hashes to ensure immutability and security. Avoiding a specific commit hash could allow an actor to tamper with modules, potentially exposing infrastructure to supply chain risks or misconfiguration. This behavior aligns with the discovery of container resources to understand system implementation and potential vulnerabilities."
+    }
+  },
+  "FND-C-6": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/main.tf",
+      "finding_title": "Ensure EKS Cluster has Secrets Encryption Enabled",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-kubernetes-policies/bc-aws-kubernetes-3",
+      "resource_type": "aws_eks_cluster",
+      "resource_name": "module.eks.aws_eks_cluster.this",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to the configuration of aws_eks_cluster resources, emphasizing the importance of enabling secrets encryption for a secure deployment. This connects to the Discovery tactic as adversaries might attempt to identify and target container resources in the environment to exploit weak configurations or access secrets stored in containers."
+    }
+  },
+  "FND-C-7": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/dynamo.tf",
+      "finding_title": "Ensure DynamoDB Tables are encrypted using a KMS Customer Managed CMK",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-52",
+      "resource_type": "aws_dynamodb_table",
+      "resource_name": "terraform-lock",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1600.001",
+      "technique_name": "Analyze Component",
+      "tactic": "Impact",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "This finding relates to inadequate encryption setup on AWS DynamoDB, which exposes sensitive data to exploitation at rest. This ties to threat behaviors targeting data protection possibly impacting confidentiality or integrity. Confidence aligns with best correlation."
+    }
+  },
+  "FND-C-8": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/s3.tf",
+      "finding_title": "Ensure that S3 buckets are encrypted with KMS by default",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-buckets-are-encrypted-with-kms-by-default",
+      "resource_type": "aws_s3_bucket",
+      "resource_name": "terraform-bucket",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1578.004",
+      "technique_name": "Revert Cloud Instance",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding relates to ensuring default S3 bucket encryption with KMS, which is aligned to securing cloud storage resources. While it does not directly correspond to 'Revert Cloud Instance,' the closest overarching Defense Evasion technique in cloud contexts applies to obscuring traces for better-protected environments."
+    }
+  },
+  "FND-U-1": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/ecr.tf",
+      "finding_title": "ECR Repository should use customer managed keys to allow more control",
+      "description": "Images in the ECR repository are encrypted by default using AWS managed encryption keys. To increase control of the encryption and control the management of factors like key rotation, use a Customer Managed Key.",
+      "recommendation": "Use customer managed keys",
+      "resource_type": "aws_ecr_repository",
+      "resource_name": "ecr",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1211",
+      "technique_name": "Exploitation for Defense Evasion",
+      "tactic": "defense-evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to recommending user-managed encryption keys to maintain control over cryptographic processes, particularly as it increases the ability to prevent unauthorized access. This aligns with tactics promoting the evasion of standard defense mechanisms where misconfigurations or lack of monitoring can provide avenues for malicious exploitation."
+    }
+  },
+  "FND-C-9": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/eks.tf",
+      "finding_title": "Ensure Terraform module sources use a commit hash",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/supply-chain-policies/terraform-policies/ensure-terraform-module-sources-use-git-url-with-commit-hash-revision",
+      "resource_type": "Terraform module",
+      "resource_name": "cert_manager_irsa_role",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding pertains to verifying the integrity of Terraform module sources. If module sources don't use a commit hash, adversaries may replace or tamper with the modules, potentially leveraging vulnerabilities in containerized environments. This aligns with threat behaviors identified under container and resource discovery, specifically targeting resource misconfigurations."
+    }
+  },
+  "FND-C-10": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/eks.tf",
+      "finding_title": "Ensure Terraform module sources use a commit hash",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/supply-chain-policies/terraform-policies/ensure-terraform-module-sources-use-git-url-with-commit-hash-revision",
+      "resource_type": "N/A",
+      "resource_name": "external_dns_irsa_role",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The finding relates to ensuring secure configurations in IaC, specifically for Terraform, to manage module source integrity. This relates to adversarial attempts to gather information on infrastructure such as EKS clusters, leading to potential reconnaissance on containers and resources. While not directly exploitative, it aligns with Discovery techniques and has medium severity due to its potential use in a larger attack."
+    }
+  },
+  "FND-C-11": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/vpc.tf",
+      "finding_title": "Ensure Terraform module sources use a commit hash",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/supply-chain-policies/terraform-policies/ensure-terraform-module-sources-use-git-url-with-commit-hash-revision",
+      "resource_type": "Terraform module",
+      "resource_name": "vpc",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The behavior described, ensuring Terraform module sources use a commit hash, relates to best practices that could potentially prevent adversaries from exploiting misconfigured or improperly secured infrastructure. This aligns with mitigating risks associated with resource discovery in containers, but its connection is indirect. The severity is adjusted to Medium due to its importance within the Discovery tactic and its role in securing development and operational environments."
+    }
+  },
+  "FND-C-12": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/main.tf",
+      "finding_title": "Ensure CloudWatch log groups retains logs for at least 1 year",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-338",
+      "resource_type": "aws_cloudwatch_log_group",
+      "resource_name": "module.eks.aws_cloudwatch_log_group.this[0]",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Checkov",
+        "Trivy"
+      ],
+      "duplicate_count": 9,
+      "merged_from_indices": [
+        8,
+        9,
+        10,
+        11,
+        34,
+        36,
+        67,
+        68,
+        78
+      ],
+      "combined_recommendations": [
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-338",
+        "Enable logging for the EKS control plane",
+        "Add a logging block to the resource to enable access logging",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-kubernetes-policies/bc-aws-kubernetes-4",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-39",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-kubernetes-policies/bc-aws-kubernetes-2",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-kubernetes-policies/bc-aws-kubernetes-1",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-13-enable-logging"
+      ],
+      "dedup_validation": {
+        "validator_explanation": "All items in cluster 4 pertain to the same resource instance 'module.eks.aws_cloudwatch_log_group.this[0]' in the same file, targeting CloudWatch log group retention for at least a year. This indicates identical implementation.",
+        "validator_keep_index": 4
+      }
+    },
+    "mitre_analysis": {
+      "technique_id": "T1485",
+      "technique_name": "Data Destruction",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding suggests insufficient log retention which can impact the ability to detect or investigate data destruction events. Appropriate logging and retention supports forensic analysis and mitigates impact."
+    }
+  },
+  "FND-C-13": {
+    "finding": {
+      "tool_name": "checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/modules/eks-managed-node-group/main.tf",
+      "finding_title": "Ensure Instance Metadata Service Version 1 is not enabled",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-general-31",
+      "resource_type": "aws_launch_template",
+      "resource_name": "module.eks.module.eks_managed_node_group.aws_launch_template.this",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1557",
+      "technique_name": "Adversary-in-the-Middle",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "Enabling Instance Metadata Service Version 1 (IMDSv1) could allow adversaries to intercept sensitive data exchanged with the metadata service, including credentials, via an Adversary-in-the-Middle attack. This maps to the 'Credential Access' tactic with a critical implication due to potential exposure of AWS temporary credentials."
+    }
+  },
+  "FND-C-14": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/modules/eks-managed-node-group/main.tf",
+      "finding_title": "Ensure Launch template should not have a metadata response hop limit greater than 1",
+      "description": "N/A",
+      "recommendation": "Refer to the guideline: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-341",
+      "resource_type": "aws_launch_template",
+      "resource_name": "module.eks.module.eks_managed_node_group.aws_launch_template.this",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1557",
+      "technique_name": "Adversary-in-the-Middle",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "Increasing the metadata response hop limit beyond 1 could allow adversaries to perform adversary-in-the-middle (AiTM) techniques by abusing network protocol features to capture sensitive information like credentials. This poses a severe risk within the Credential Access tactic."
+    }
+  },
+  "FND-C-15": {
+    "finding": {
+      "tool_name": "checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/modules/self-managed-node-group/main.tf",
+      "finding_title": "Ensure Instance Metadata Service Version 1 is not enabled",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-general-31",
+      "resource_type": "aws_launch_template",
+      "resource_name": "module.eks.module.self_managed_node_group.aws_launch_template.this",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1557",
+      "technique_name": "Adversary-in-the-Middle",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding addresses the usage of Instance Metadata Service (IMDS) Version 1, which is vulnerable to exploitation by adversaries intercepting or credential harvesting data during a man-in-the-middle attack. This aligns closely with the 'Adversary-in-the-Middle' technique under the 'Credential Access' tactic in the MITRE ATT&CK framework. Exploiting IMDSv1 can lead directly to credential leakage or unauthorized access, requiring immediate attention."
+    }
+  },
+  "FND-C-16": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/modules/self-managed-node-group/main.tf",
+      "finding_title": "Ensure Launch template should not have a metadata response hop limit greater than 1",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/bc-aws-341",
+      "resource_type": "aws_launch_template",
+      "resource_name": "module.eks.module.self_managed_node_group.aws_launch_template.this",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1557",
+      "technique_name": "Adversary-in-the-Middle",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "Launch templates with metadata response hop limits greater than 1 may be exploited for adversary-in-the-middle techniques, enabling threat actors to intercept sensitive credential information during network communication. Credential theft directly impacts system security, warranting critical severity."
+    }
+  },
+  "FND-C-17": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/node_groups.tf",
+      "finding_title": "Ensure IAM policies does not allow write access without constraints",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/ensure-iam-policies-do-not-allow-write-access-without-constraint",
+      "resource_type": "aws_iam_policy_document",
+      "resource_name": "module.eks.aws_iam_policy_document.cni_ipv6_policy",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1036.004",
+      "technique_name": "Ensure IAM policies does not allow write access without constraints",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "Misconfigured IAM policies without proper constraints may allow adversaries to escalate their privileges by gaining broad write access."
+    }
+  },
+  "FND-C-18": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/node_groups.tf",
+      "finding_title": "Ensure no IAM policies documents allow \"*\" as a statement's resource for restrictable actions",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-356",
+      "resource_type": "aws_iam_policy_document",
+      "resource_name": "module.eks.aws_iam_policy_document.cni_ipv6_policy",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1562.004",
+      "technique_name": "Disable or Modify Cloud Firewall",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "IAM policies with overly permissive resources (e.g., \"*\") can be abused by adversaries for defense evasion by modifying cloud configurations such as firewalls. This aligns with MITRE ATT&CK's Defense Evasion tactic, as it involves bypassing security controls."
+    }
+  },
+  "FND-C-19": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/github.tf",
+      "finding_title": "Ensure IAM policies does not allow write access without constraints",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-290",
+      "resource_type": "aws_iam_role_policy",
+      "resource_name": "gha_oidc_terraform_permissions",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Persistence",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The identified risk in the finding relates to possible misuse of misconfigured IAM policies allowing unrestricted write access. This aligns with the Valid Accounts (T1078) technique, as adversaries could exploit such policies to persist in the environment with improperly constrained permissions."
+    }
+  },
+  "FND-C-20": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/github.tf",
+      "finding_title": "Ensure IAM policies does not allow data exfiltration",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-288",
+      "resource_type": "aws_iam_role_policy",
+      "resource_name": "gha_oidc_terraform_permissions",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1560.001",
+      "technique_name": "Archive via Utility",
+      "tactic": "Collection",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The finding relates to IAM policies that might permit data exfiltration, which aligns with the use case of archiving data for exfiltration. Data exfiltration techniques typically follow the collection phase, influencing its categorization at medium severity since it doesn\u2019t immediately lead to critical impacts like Initial Access or Privilege Escalation."
+    }
+  },
+  "FND-C-21": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/github.tf",
+      "finding_title": "Ensure IAM policies does not allow privilege escalation",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-286",
+      "resource_type": "aws_iam_role_policy",
+      "resource_name": "gha_oidc_terraform_permissions",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1069.001",
+      "technique_name": "Permission Groups Discovery: Local Groups",
+      "tactic": "Discovery",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "Checkov detected a possible misconfiguration in the IAM policies within the Terraform GitHub file. This finding might enable an adversary to elevate privileges or have unintended escalation in AWS roles. This is closely aligned with Permission Groups Discovery."
+    }
+  },
+  "FND-C-22": {
+    "finding": {
+      "tool_name": "checkov",
+      "file_path": "/terraform/pre-deploy/github.tf",
+      "finding_title": "Ensure IAM policies does not allow credentials exposure",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-287",
+      "resource_type": "aws_iam_role_policy",
+      "resource_name": "gha_oidc_terraform_permissions",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1552",
+      "technique_name": "Unsecured Credentials",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding indicates a potential misconfiguration in IAM policies that could result in credential exposure. Mapping this to the MITRE ATT&CK framework, 'Unsecured Credentials' is an appropriate technique under the 'Credential Access' tactic. The critical severity reflects the significant security implications of compromised IAM credentials."
+    }
+  },
+  "FND-C-23": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/github.tf",
+      "finding_title": "Ensure IAM policies does not allow permissions management / resource exposure without constraints",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-289",
+      "resource_type": "aws_iam_role_policy",
+      "resource_name": "gha_oidc_terraform_permissions",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1098.003",
+      "technique_name": "Additional Cloud Roles",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "rationale": "The finding highlights risks related to IAM policies in cloud environments, specifically excessive permissions without constraints. This aligns with attackers exploiting 'Additional Cloud Roles' (T1098.003) for privilege escalation, which is critical for securing privileged resources. The severity and confidence are adjusted based on this tactic while acknowledging potential limited details in the report description."
+    }
+  },
+  "FND-C-24": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/github.tf",
+      "finding_title": "Ensure no IAM policies documents allow \"*\" as a statement's resource for restrictable actions",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-355",
+      "resource_type": "aws_iam_role_policy",
+      "resource_name": "gha_oidc_terraform_permissions",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to improperly configured IAM roles, potentially allowing misuse of credentials that are broadly scoped (e.g., wildcard resource access '*'). This aligns with the 'Valid Accounts' technique under Credential Access in MITRE ATT&CK, highlighting critical severity due to potential privilege escalation and misuse risks."
+    }
+  },
+  "FND-C-25": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/github.tf",
+      "finding_title": "Ensure AWS IAM policy does not allow full IAM privileges",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-iam-policies/bc-aws-2-40",
+      "resource_type": "aws_iam_role_policy",
+      "resource_name": "gha_oidc_terraform_permissions",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1552.001",
+      "technique_name": "Valid Accounts",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights the risk of AWS IAM policies allowing full IAM privileges, which aligns with adversaries leveraging valid accounts to escalate privileges, compromising overall account security."
+    }
+  },
+  "FND-U-2": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/pre-deploy/github.tf",
+      "finding_title": "Disallow unrestricted S3 IAM Policies",
+      "description": "Ensure that the creation of the unrestricted S3 IAM policies is disallowed.",
+      "recommendation": "Create more restrictive S3 policies",
+      "resource_type": "aws_iam_role_policy",
+      "resource_name": "gha_oidc_terraform_permissions",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1528",
+      "technique_name": "Steal Application Access Token",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding identifies unrestricted IAM policies for accessing S3 buckets, which aligns with Credential Access concerns due to potential misuse of application tokens or policies to elevate access."
+    }
+  },
+  "FND-C-26": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/dynamo.tf",
+      "finding_title": "Ensure DynamoDB point in time recovery (backup) is enabled",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/general-6",
+      "resource_type": "aws_dynamodb_table",
+      "resource_name": "terraform-lock",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1578.004",
+      "technique_name": "Revert Cloud Instance",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights the absence of backup configuration (point in time recovery) for DynamoDB, which could help adversaries revert changes or attempts to evade forensic analysis in cloud environments. The issue is mapped to 'Revert Cloud Instance' in MITRE ATT&CK."
+    }
+  },
+  "FND-C-27": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/dynamo.tf",
+      "finding_title": "Ensure that Auto Scaling is enabled on your DynamoDB tables",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-auto-scaling-is-enabled-on-your-dynamodb-tables",
+      "resource_type": "aws_dynamodb_table",
+      "resource_name": "terraform-lock",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1499",
+      "technique_name": "Endpoint Denial of Service",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "If Auto Scaling is not enabled on DynamoDB tables, adversaries might exploit this configuration to cause resource exhaustion, resulting in denial-of-service scenarios. This aligns with the MITRE ATT&CK Impact tactic, particularly under Endpoint Denial of Service as part of potential availability disruption."
+    }
+  },
+  "FND-C-28": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/s3.tf",
+      "finding_title": "Ensure S3 buckets should have event notifications enabled",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-62",
+      "resource_type": "aws_s3_bucket",
+      "resource_name": "terraform-bucket",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to ensuring S3 buckets have event notifications enabled, which aligns closely with discovering cloud resources like containers or storage buckets within a cloud environment, a functionality associated with AWS S3 and other platforms. This is a discovery action that would aid an adversary in gathering such information for future exploitation."
+    }
+  },
+  "FND-C-29": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/s3.tf",
+      "finding_title": "Ensure that S3 bucket has cross-region replication enabled",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-general-policies/ensure-that-s3-bucket-has-cross-region-replication-enabled",
+      "resource_type": "aws_s3_bucket",
+      "resource_name": "terraform-bucket",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Persistence",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding involves securing S3 bucket configurations, which can prevent adversaries from exploiting misconfigured credentials or permissions. Mapped to 'Valid Accounts' as part of preventing unauthorized lateral movement or unauthorized persistence mechanisms."
+    }
+  },
+  "FND-C-30": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/s3.tf",
+      "finding_title": "Ensure that an S3 bucket has a lifecycle configuration",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-logging-policies/bc-aws-2-61",
+      "resource_type": "aws_s3_bucket",
+      "resource_name": "terraform-bucket",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1530",
+      "technique_name": "Data from Cloud Storage Object",
+      "tactic": "Collection",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding identifies an S3 bucket that lacks lifecycle configuration. S3 buckets are often used for cloud storage, which can lead to a security vulnerability in data collection if improperly configured. There is a strong alignment with the MITRE Collection tactic focusing on data from cloud storage."
+    }
+  },
+  "FND-U-3": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/pre-deploy/dynamo.tf",
+      "finding_title": "Point in time recovery should be enabled to protect DynamoDB table",
+      "description": "DynamoDB tables should be protected against accidentally or malicious write/delete actions by ensuring that there is adequate protection.\nBy enabling point-in-time-recovery you can restore to a known point in the event of loss of data.",
+      "recommendation": "Enable point in time recovery",
+      "resource_type": "aws_dynamodb_table",
+      "resource_name": "terraform-lock",
+      "severity": "MEDIUM",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1485",
+      "technique_name": "Data Destruction",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "Enabling point-in-time recovery for DynamoDB mitigates against data destruction threats where adversaries attempt to destroy or corrupt data. Data destruction falls under the Impact tactic, which elevates the severity to HIGH when considering potential impacts to availability and integrity."
+    }
+  },
+  "FND-C-31": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/zones.tf",
+      "finding_title": "Ensure Domain Name System Security Extensions (DNSSEC) signing is enabled for Amazon Route 53 public hosted zones",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/bc-aws-2-38",
+      "resource_type": "aws_route53_zone",
+      "resource_name": "aws_route53_zone.main",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1539",
+      "technique_name": "Steal Web Session Cookie",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to DNS security of an AWS Route 53 public hosted zone. Weak configurations in DNSSEC signing could allow adversaries to intercept sessions or spoof DNS responses if they are able to manipulate or hijack the zone. Mitre ATT&CK technique T1539, involving stealing session cookies, correlates with the concept of exploiting such security gaps to gain session data for further actions. DNS misconfiguration is categorized under Initial Access and Credential Access tactics."
+    }
+  },
+  "FND-C-32": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/pre-deploy/s3.tf",
+      "finding_title": "Ensure that S3 bucket has a Public Access block",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/s3-bucket-should-have-public-access-blocks-defaults-to-false-if-the-public-access-block-is-not-attached",
+      "resource_type": "aws_s3_bucket",
+      "resource_name": "terraform-bucket",
+      "severity": "N/A",
+      "scan_type": "IaC",
+      "detected_by_tools": [
+        "Checkov",
+        "Trivy"
+      ],
+      "duplicate_count": 6,
+      "merged_from_indices": [
+        29,
+        76,
+        77,
+        79,
+        80,
+        81
+      ],
+      "combined_recommendations": [
+        "Enable ignoring the application of public ACLs in PUT calls",
+        "Prevent policies that allow public access being PUT",
+        "Limit the access to public buckets to only the owner or AWS Services (eg; CloudFront)",
+        "Enable blocking any PUT calls with a public ACL specified",
+        "Define a aws_s3_bucket_public_access_block for the given bucket to control public access policies",
+        "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/s3-bucket-should-have-public-access-blocks-defaults-to-false-if-the-public-access-block-is-not-attached"
+      ],
+      "dedup_validation": {
+        "validator_explanation": "All findings reference the same resource (terraform-bucket) in the same file (terraform/pre-deploy/s3.tf) and relate to the implementation of the S3 bucket's public access block. The recommendations are semantically aligned, discussing different aspects of the same configuration block.",
+        "validator_keep_index": 1
+      }
+    },
+    "mitre_analysis": {
+      "technique_id": "T1070.004",
+      "technique_name": "Indicator Removal on Host",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding relates to ensuring a public access block on an S3 bucket, which touches upon the proper configuration to prevent evasion tactics like unauthorized access or modification to security configurations. High security importance is contextualized due to implications on system and resource control."
+    }
+  },
+  "FND-C-33": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/terraform/modules/terraform-aws-eks/main.tf",
+      "finding_title": "Ensure that Security Groups are attached to another resource",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/aws-networking-policies/ensure-that-security-groups-are-attached-to-ec2-instances-or-elastic-network-interfaces-enis",
+      "resource_type": "aws_security_group",
+      "resource_name": "module.eks.aws_security_group.cluster[0]",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The finding emphasizes that security groups (AWS Security Groups in this context) should be attached to resources to avoid improper configurations. Misconfigurations may lead to resource discovery by adversaries. Discovery techniques like 'Container and Resource Discovery' are potentially exploitable for lateral movement or reconnaissance activities. This finding, however, does not explicitly relate to immediate criticality but reflects a medium severity under the discovery tactic focused on securing cloud/container resources."
+    }
+  },
+  "FND-C-34": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/Dockerfile",
+      "finding_title": "Ensure that APT isn't used",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/docker-policies/docker-policy-index/ensure-docker-apt-is-not-used",
+      "resource_type": "Docker",
+      "resource_name": "/Dockerfile.RUN",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding indicates that the use of APT in a Dockerfile should be scrutinized. Docker images are foundational components for container environments, and improper use of package managers (e.g., APT) can inadvertently expose sensitive details by being manipulated to query additional resources or include unintended dependencies. As these actions align with 'Container and Resource Discovery' in the MITRE ATT&CK framework, the tactic is classified under Discovery."
+    }
+  },
+  "FND-C-35": {
+    "finding": {
+      "tool_name": "Checkov",
+      "file_path": "/Dockerfile",
+      "finding_title": "Ensure that HEALTHCHECK instructions have been added to container images",
+      "description": "N/A",
+      "recommendation": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/docker-policies/docker-policy-index/ensure-that-healthcheck-instructions-have-been-added-to-container-images",
+      "resource_type": "Docker",
+      "resource_name": "/Dockerfile.",
+      "severity": "N/A",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding focuses on the absence of HEALTHCHECK instructions in Dockerfiles, which could hinder monitoring and health assessment of containerized environments. This aligns with MITRE\u2019s Container and Resource Discovery technique as it reflects an adversary\u2019s opportunity to identify improperly monitored or unmonitored container workloads. While not directly exploitable, this contributes to poor visibility and preparation, emphasizing a medium-severity classification."
+    }
+  },
+  "FND-U-4": {
+    "finding": {
+      "tool_name": "trivy",
+      "file_path": "Dockerfile",
+      "finding_title": "No HEALTHCHECK defined",
+      "description": "You should add HEALTHCHECK instruction in your docker container images to perform the health check on running containers.",
+      "recommendation": "Add HEALTHCHECK instruction in Dockerfile",
+      "resource_type": "Dockerfile",
+      "resource_name": "N/A",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The identified finding indicates a missing HEALTHCHECK instruction in the Dockerfile, which could result in challenges monitoring container health and detecting potential compromise. This aligns with the discovery tactics of an adversary aiming to identify and exploit containers or resources. The severity has been adjusted to MEDIUM, as issues in discovery pose a moderate risk impacting container runtime but do not directly associate with privilege escalation or execution."
+    }
+  },
+  "FND-U-5": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Can elevate its own privileges",
+      "description": "A program inside the container can elevate its own privileges and run as root, which might give the program control over the container and node.",
+      "recommendation": "Set 'set containers[].securityContext.allowPrivilegeEscalation' to 'false'.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "MEDIUM",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1068",
+      "technique_name": "Exploitation for Privilege Escalation",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding indicates that a program inside the container can elevate its privileges and run as root. This behavior corresponds to the MITRE ATT&CK technique T1068, where adversaries exploit vulnerabilities to escalate privileges. Since the tactic is Privilege Escalation, the severity is adjusted to CRITICAL."
+    }
+  },
+  "FND-U-6": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Default capabilities: some containers do not drop any",
+      "description": "Security best practices require containers to run with minimal required capabilities.",
+      "recommendation": "Specify at least one unneeded capability in 'containers[].securityContext.capabilities.drop'",
+      "resource_type": "deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1078.001",
+      "technique_name": "Default Accounts",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights that containers do not drop default capabilities, which can lead to privilege escalation. Leveraging default accounts directly aligns with the Privilege Escalation tactic. This poses a critical security threat in environments where unneeded capabilities are not minimized, providing attackers a pathway to elevate privileges."
+    }
+  },
+  "FND-U-7": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Runs as root user",
+      "description": "Force the running image to run as a non-root user to ensure least privileges.",
+      "recommendation": "Set 'containers[].securityContext.runAsNonRoot' to true.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "MEDIUM",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1033",
+      "technique_name": "System Owner/User Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding identifies the deployment running as a root user, which aligns with adversary behaviors to discover or exploit accounts with high privileges, relevant to the Discovery tactic for evaluating permissions and configurations in the environment."
+    }
+  },
+  "FND-U-8": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Root file system is not read-only",
+      "description": "An immutable root file system prevents applications from writing to their local disk. This can limit intrusions, as attackers will not be able to tamper with the file system or write foreign executables to disk.",
+      "recommendation": "Change 'containers[].securityContext.readOnlyRootFilesystem' to 'true'.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1222",
+      "technique_name": "File and Directory Permissions Modification",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding indicates attackers may take advantage of writable root filesystems to modify file permissions that aid in evasion from security controls. This aligns with T1222 and falls under the Defense Evasion tactic."
+    }
+  },
+  "FND-U-9": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Seccomp policies disabled",
+      "description": "A program inside the container can bypass Seccomp protection policies.",
+      "recommendation": "Specify seccomp either by annotation or by seccomp profile type having allowed values as per pod security standards",
+      "resource_type": "Kubernetes Deployment",
+      "resource_name": "flask-app",
+      "severity": "MEDIUM",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1211",
+      "technique_name": "Exploitation for Defense Evasion",
+      "tactic": "defense-evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding 'Seccomp policies disabled' allows a program in the container to bypass security mechanisms (Seccomp protection policies). This corresponds to 'Exploitation for Defense Evasion' (T1211) as it involves disabling mechanisms designed for isolating or minimizing the container\u2019s attack surface."
+    }
+  },
+  "FND-U-10": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Default security context configured",
+      "description": "Security context controls the allocation of security parameters for the pod/container/volume, ensuring the appropriate level of protection. Relying on default security context may expose vulnerabilities to potential attacks that rely on privileged access.",
+      "recommendation": "To enhance security, it is strongly recommended not to rely on the default security context. Instead, it is advisable to explicitly define the required security parameters (such as runAsNonRoot, capabilities, readOnlyRootFilesystem, etc.) within the security context.",
+      "resource_type": "container",
+      "resource_name": "flask-app",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1578",
+      "technique_name": "Modify Cloud Compute Infrastructure",
+      "tactic": "defense-evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "Relying on default security contexts for containers increases the risk of attacks, particularly those involving modification to cloud infrastructure, as it can facilitate evasion of defenses and exploitation of containerized environments."
+    }
+  },
+  "FND-U-11": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Default security context configured",
+      "description": "Security context controls the allocation of security parameters for the pod/container/volume, ensuring the appropriate level of protection. Relying on default security context may expose vulnerabilities to potential attacks that rely on privileged access.",
+      "recommendation": "To enhance security, it is strongly recommended not to rely on the default security context. Instead, it is advisable to explicitly define the required security parameters (such as runAsNonRoot, capabilities, readOnlyRootFilesystem, etc.) within the security context.",
+      "resource_type": "deployment",
+      "resource_name": "flask-app",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to the lack of restrictions in the security context, allowing adversaries to potentially enumerate and exploit containers and resources in the environment. This matches the discovery phase of adversary behavior targeting Kubernetes or containerized environments."
+    }
+  },
+  "FND-U-12": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Default capabilities: some containers do not drop all",
+      "description": "The container should drop all default capabilities and add only those that are needed for its execution.",
+      "recommendation": "Add 'ALL' to containers[].securityContext.capabilities.drop.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights the improper management of default capabilities in Kubernetes deployments, which can lead to revealing sensitive container or resource information. This aligns with the 'Container and Resource Discovery' technique in the MITRE ATT&CK framework under the Discovery tactic. Given the context of discovery without direct privilege escalation or exploitation, the severity is adjusted to MEDIUM with high confidence."
+    }
+  },
+  "FND-U-13": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "CPU not limited",
+      "description": "Enforcing CPU limits prevents DoS via resource exhaustion.",
+      "recommendation": "Set a limit value under 'containers[].resources.limits.cpu'.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1499",
+      "technique_name": "Endpoint Denial of Service",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding 'CPU not limited' maps to the MITRE ATT&CK technique T1499 because it is directly associated with risks of resource exhaustion, which aligns with the Endpoint Denial of Service technique. By not limiting CPU usage, an adversary could exploit this to induce a denial-of-service state. This is categorized under the 'Impact' tactic as it can disrupt system availability. Considering the potential effect, the severity is elevated to HIGH."
+    }
+  },
+  "FND-U-14": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Image tag \":latest\" used",
+      "description": "It is best to avoid using the ':latest' image tag when deploying containers in production. Doing so makes it hard to track which version of the image is running, and hard to roll back the version.",
+      "recommendation": "Use a specific container image tag that is not 'latest'.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "MEDIUM",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "Using ':latest' image tags can hinder accurate tracking of container versions, potentially allowing adversaries to explore and identify misconfigurations in containers or resources, correlating to the Discovery tactic in MITRE ATT&CK."
+    }
+  },
+  "FND-U-15": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "CPU requests not specified",
+      "description": "When containers have resource requests specified, the scheduler can make better decisions about which nodes to place pods on, and how to deal with resource contention.",
+      "recommendation": "Set 'containers[].resources.requests.cpu'.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding indicates that 'CPU requests not specified' can impair resource allocation decisions in containerized environments. This indirectly aligns with the MITRE technique T1613, which involves adversaries discovering containers and resources. Poorly configured environments can make discovery or exploitation easier. The discovery category implies a MEDIUM severity."
+    }
+  },
+  "FND-U-16": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Memory requests not specified",
+      "description": "When containers have memory requests specified, the scheduler can make better decisions about which nodes to place pods on, and how to deal with resource contention.",
+      "recommendation": "Set 'containers[].resources.requests.memory'.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "This finding relates to resource misconfiguration that could expose container resource details, allowing adversaries to discover containers and their associated information. This maps to the 'Discovery' tactic due to the potential for adversaries to gather information about the environment, impacting resource allocation and potentially enabling further misuse."
+    }
+  },
+  "FND-U-17": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Memory not limited",
+      "description": "Enforcing memory limits prevents DoS via resource exhaustion.",
+      "recommendation": "Set a limit value under 'containers[].resources.limits.memory'.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1499.001",
+      "technique_name": "OS Exhaustion Flood",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding indicates a lack of memory resource limits in containers, which could be exploited by adversaries to launch a Denial of Service (DoS) attack. Such behavior aligns with the OS Exhaustion Flood technique (T1499.001) under the Impact tactic. The severity is adjusted to HIGH, considering the potential to disrupt operations via resource exhaustion."
+    }
+  },
+  "FND-U-18": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Runtime/Default Seccomp profile not set",
+      "description": "According to pod security standard 'Seccomp', the RuntimeDefault seccomp profile must be required, or allow specific additional profiles.",
+      "recommendation": "Set 'spec.securityContext.seccompProfile.type', 'spec.containers[*].securityContext.seccompProfile' and 'spec.initContainers[*].securityContext.seccompProfile' to 'RuntimeDefault' or undefined.",
+      "resource_type": "Kubernetes Pod",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1205.002",
+      "technique_name": "Socket Filters",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding highlights a misconfiguration in Kubernetes Pod security standards where the RuntimeDefault seccomp profile is not enforced, potentially exposing the application to adversaries aiming to avoid detection mechanisms. Socket filters allow network traffic monitoring and selective activation of backdoors, aligning with the Defense Evasion tactic. Severity is elevated due to potential implications for adversary concealment and persistence."
+    }
+  },
+  "FND-U-19": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Container capabilities must only include NET_BIND_SERVICE",
+      "description": "Containers must drop ALL capabilities, and are only permitted to add back the NET_BIND_SERVICE capability.",
+      "recommendation": "Set 'spec.containers[*].securityContext.capabilities.drop' to 'ALL' and only add 'NET_BIND_SERVICE' to 'spec.containers[*].securityContext.capabilities.add'.",
+      "resource_type": "Kubernetes",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding addresses ensuring minimal container capabilities for security, which aligns with the discovery and management of container resources to prevent misuse or discovery by adversaries. The severity is adjusted to medium since it relates to discovery rather than direct exploitation."
+    }
+  },
+  "FND-U-20": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Runs with UID <= 10000",
+      "description": "Force the container to run with user ID > 10000 to avoid conflicts with the host\u2019s user table.",
+      "recommendation": "Set 'containers[].securityContext.runAsUser' to an integer > 10000.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding indicates that container environments can have UID conflicts, leading to incorrect or unintended access. This aligns with adversaries performing resource and environment enumeration to identify weaknesses in configuration. The associated risk fits within a Discovery tactic that identifies systemic misconfigurations."
+    }
+  },
+  "FND-U-21": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Runs with GID <= 10000",
+      "description": "Force the container to run with group ID > 10000 to avoid conflicts with the host\u2019s user table.",
+      "recommendation": "Set 'containers[].securityContext.runAsGroup' to an integer > 10000.",
+      "resource_type": "Deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The finding relates to enforcing group ID restrictions in container configurations to prevent unintended conflicts or escalations, aligning with information gathering about container resources and constraints, rather than more critical actions like exploitation."
+    }
+  },
+  "FND-U-22": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "helm/templates/deployment.yaml",
+      "finding_title": "Workloads in the default namespace",
+      "description": "Checks whether a workload is running in the default namespace.",
+      "recommendation": "Set 'metadata.namespace' to a non-default namespace.",
+      "resource_type": "Kubernetes deployment",
+      "resource_name": "flask-app",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding 'Workloads in the default namespace' relates to poorly segregated or improperly configured Kubernetes environments, enabling discovery of resources by potential adversaries. This aligns with the MITRE ATT&CK technique T1613 under the 'Discovery' tactic. It has been rated as MEDIUM because improper configuration facilitates reconnaissance but doesn't directly lead to compromise."
+    }
+  },
+  "FND-U-23": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform-aws-modules/vpc/aws/main.tf",
+      "finding_title": "Instances in a subnet should not receive a public IP address by default.",
+      "description": "You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.",
+      "recommendation": "Set the instance to not be publicly accessible",
+      "resource_type": "aws_subnet",
+      "resource_name": "public",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1590.005",
+      "technique_name": "IP Addresses",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to resources in a subnet potentially receiving public IP addresses, which is consistent with reconnaissance or discovery of network configurations. Assigning public IPs may inadvertently expose resources to unnecessary external discovery and interaction, enabling adversaries to gain spatial awareness of the network."
+    }
+  },
+  "FND-U-24": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform-aws-modules/vpc/aws/main.tf",
+      "finding_title": "Instances in a subnet should not receive a public IP address by default.",
+      "description": "You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.",
+      "recommendation": "Set the instance to not be publicly accessible",
+      "resource_type": "aws_subnet",
+      "resource_name": "public",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Initial Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The issue describes a potential exposure where resources could receive public IPs by default, increasing the risk of unauthorized access via valid accounts on exposed systems. This aligns with adversaries leveraging accessible accounts for initial access into the network."
+    }
+  },
+  "FND-U-25": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform-aws-modules/vpc/aws/main.tf",
+      "finding_title": "Instances in a subnet should not receive a public IP address by default.",
+      "description": "You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.",
+      "recommendation": "Set the instance to not be publicly accessible",
+      "resource_type": "aws_subnet",
+      "resource_name": "public",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1592",
+      "technique_name": "Gather Victim Host Information",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to exposing resources to the public internet which aligns with potential discovery of networked hosts and information by adversaries. Adjusting to MEDIUM severity as this is valuable but does not immediately facilitate active malicious exploits."
+    }
+  },
+  "FND-U-26": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/modules/terraform-aws-eks/main.tf",
+      "finding_title": "EKS Clusters should have the public access disabled",
+      "description": "EKS clusters are available publicly by default, this should be explicitly disabled in the vpc_config of the EKS cluster resource.",
+      "recommendation": "Don't enable public access to EKS Clusters",
+      "resource_type": "aws_eks_cluster",
+      "resource_name": "module.eks",
+      "severity": "CRITICAL",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to EKS clusters having public access enabled by default, which represents a discovery and reconnaissance vulnerability. This issue would allow adversaries to identify available resources like EKS clusters from the public internet or an improperly secured internal network. This aligns with the MITRE ATT&CK technique T1613: Container and Resource Discovery under the Discovery tactic, and the severity is adjusted to MEDIUM accordingly."
+    }
+  },
+  "FND-U-27": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/modules/terraform-aws-eks/main.tf",
+      "finding_title": "EKS cluster should not have open CIDR range for public access",
+      "description": "EKS Clusters have public access cidrs set to 0.0.0.0/0 by default which is wide open to the internet. This should be explicitly set to a more specific private CIDR range",
+      "recommendation": "Don't enable public access to EKS Clusters",
+      "resource_type": "aws_eks_cluster",
+      "resource_name": "aws_eks_cluster.this[0]",
+      "severity": "CRITICAL",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1583",
+      "technique_name": "Acquire Infrastructure",
+      "tactic": "Resource Development",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The EKS cluster with a public CIDR range opens infrastructure to potential misuse, indicating a resource that could facilitate further malicious activity. Given the lack of active exploitation or privilege escalation, the severity is adjusted."
+    }
+  },
+  "FND-U-28": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/modules/terraform-aws-eks/node_groups.tf",
+      "finding_title": "A security group rule should not allow unrestricted egress to any IP address.",
+      "description": "Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.",
+      "recommendation": "Set a more restrictive cidr range",
+      "resource_type": "aws_security_group_rule",
+      "resource_name": "node[\"egress_all\"]",
+      "severity": "CRITICAL",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1036",
+      "technique_name": "Masquerading",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding discusses unrestricted egress in a security group rule, which may allow adversaries to inject malicious traffic or disguise their activity as normal communication with external systems. This aligns with the Masquerading defense-evasion technique, as adversaries could bypass detection mechanisms."
+    }
+  },
+  "FND-U-29": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/vpc.tf",
+      "finding_title": "VPC Flow Logs is a feature that enables you to capture information about the IP traffic going to and from network interfaces in your VPC.",
+      "description": "VPC Flow Logs provide visibility into network traffic that traverses the VPC and can be used to detect anomalous traffic or insight during security workflows.",
+      "recommendation": "Enable flow logs for VPC",
+      "resource_type": "aws_vpc",
+      "resource_name": "module.vpc",
+      "severity": "MEDIUM",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding indicates a lack of VPC Flow Logs, which could provide visibility into network traffic to detect anomalies. This aligns with the 'Discovery' tactic, focusing on identifying resources, nodes, or traffic in cloud environments, like VPCs."
+    }
+  },
+  "FND-U-30": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/data.tf",
+      "finding_title": "AWS AMI data source should specify owners",
+      "description": "AWS AMI data source should specify owners to avoid using unverified AMIs. The owners field helps ensure you're using AMIs from known and trusted sources.",
+      "recommendation": "Specify the owners field in the AWS AMI data source configuration",
+      "resource_type": "data.aws_ami",
+      "resource_name": "amazon-linux-2023",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1583",
+      "technique_name": "Acquire Infrastructure",
+      "tactic": "Resource Development",
+      "adjusted_severity": "LOW",
+      "confidence": "MEDIUM",
+      "rationale": "Failing to specify owners for AWS AMI data sources could potentially lead to misuse of unverified AMIs. However, this maps to 'Acquire Infrastructure,' and the associated tactic does not escalate privilege, recover credentials, or provide adversaries initial access or execution directly."
+    }
+  },
+  "FND-U-31": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/ecr.tf",
+      "finding_title": "ECR repository has image scans disabled.",
+      "description": "Repository image scans should be enabled to ensure vulnerable software can be discovered and remediated as soon as possible.",
+      "recommendation": "Enable ECR image scanning",
+      "resource_type": "aws_ecr_repository",
+      "resource_name": "ecr",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding relates to the lack of image scans in an AWS ECR repository, which could allow adversaries to discover and exploit vulnerable container images. This aligns with the MITRE technique T1613 as it involves discovering container resources to exploit container environments."
+    }
+  },
+  "FND-U-32": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/ecr.tf",
+      "finding_title": "ECR images tags shouldn't be mutable.",
+      "description": "ECR images should be set to IMMUTABLE to prevent code injection through image mutation.\nThis can be done by setting <code>image_tag_mutability</code> to <code>IMMUTABLE</code>\n",
+      "recommendation": "Only use immutable images in ECR",
+      "resource_type": "aws_ecr_repository",
+      "resource_name": "ecr",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights a configuration issue related to ECR image tag mutability, which could potentially allow attackers to tamper with containers and resources. This aligns with the discovery phase where adversaries gather information about the container environment to plan further attacks. The severity is adjusted to MEDIUM given the tactic context, as it relates to the discovery of resources rather than direct compromise or critical abuse."
+    }
+  },
+  "FND-U-33": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/modules/terraform-aws-eks/modules/karpenter/main.tf",
+      "finding_title": "IAM Pass Role Filtering",
+      "description": "Ensures any IAM pass role attached to roles are flagged and warned.",
+      "recommendation": "Resolve permission escalations by denying pass role'",
+      "resource_type": "aws_iam_policy_document",
+      "resource_name": "irsa",
+      "severity": "MEDIUM",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1078.004",
+      "technique_name": "SSH Authorized Keys",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding pertains to flagging and warning IAM pass roles in policies, which could potentially result in unauthorized access or abuse of IAM roles for privilege escalation or gaining credentials, aligning with the Credential Access tactic."
+    }
+  },
+  "FND-U-34": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/pre-deploy/dynamo.tf",
+      "finding_title": "DynamoDB tables should use at rest encryption with a Customer Managed Key",
+      "description": "Using AWS managed keys does not allow for fine grained control. DynamoDB tables are encrypted by default using AWS managed encryption keys. To increase control of the encryption and control the management of factors like key rotation, use a Customer Managed Key.",
+      "recommendation": "Enable server side encryption with a customer managed key",
+      "resource_type": "aws_dynamodb_table",
+      "resource_name": "terraform-lock",
+      "severity": "LOW",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1578.004",
+      "technique_name": "Revert Cloud Instance",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding relates to the use of customer-managed keys for encryption, which increases control over the data security posture of cloud resources like DynamoDB tables. While the primary impact isn\u2019t malicious activity itself, misconfiguration of encryption involves risks often leveraged defensively (by attackers) to make changes harder to detect. T1578.004 was selected based on its relation to cloud actions preventing attribution/remediation."
+    }
+  },
+  "FND-U-35": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "terraform/pre-deploy/s3.tf",
+      "finding_title": "S3 encryption should use Customer Managed Keys",
+      "description": "Encryption using AWS keys provides protection for your S3 buckets. To gain greater control over encryption, such as key rotation, access policies, and auditability, use customer managed keys (CMKs) with SSE-KMS.\nNote that SSE-KMS is not supported for S3 server access logging destination buckets; in such cases, use SSE-S3 instead.",
+      "recommendation": "Use SSE-KMS with a customer managed key (CMK)",
+      "resource_type": "aws_s3_bucket_server_side_encryption_configuration",
+      "resource_name": "s3-encryption",
+      "severity": "HIGH",
+      "scan_type": "IaC"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1578.004",
+      "technique_name": "Revert Cloud Instance",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding suggests using customer-managed keys to enhance control over encryption. The improper configuration could potentially allow unauthorized access or data compromise. While the configuration itself relates to encryption best practices, the thematic overlap with cloud misconfigurations or evasion tactics (like reverting to default states) maps to T1578.004."
+    }
+  },
+  "FND-B-1": {
+    "finding": {
+      "tool_name": "Bandit",
+      "file_path": "/scan/app/web.py",
+      "finding_title": "Possible binding to all interfaces",
+      "description": "The code binds the application to all network interfaces, which may expose it to external access. This can lead to security risks if the application is not properly secured.",
+      "recommendation": "Restrict the binding to specific interfaces or use a firewall to limit access.",
+      "resource_type": "Python function",
+      "resource_name": "app.run",
+      "severity": "MEDIUM",
+      "scan_type": "SAST"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1133",
+      "technique_name": "External Remote Services",
+      "tactic": "Initial Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "rationale": "The finding describes the application binding to all network interfaces, potentially exposing it to external access. This matches the MITRE ATT&CK T1133 technique, which involves leveraging services exposed externally. Given the link to potential Initial Access, the severity is critical, with medium confidence as exposure is dependent on specific configurations and access controls."
+    }
+  },
+  "FND-TS-1": {
+    "finding": {
+      "tool_name": "trivy-sca",
+      "file_path": "requirements.txt",
+      "finding_title": "flask: Flask: Information disclosure via improper caching of session data",
+      "description": "Flask is a web server gateway interface (WSGI) web application framework. In versions 3.1.2 and below, when the session object is accessed, Flask should set the Vary: Cookie header., resulting in a Use of Cache Containing Sensitive Information vulnerability. The logic instructs caches not to cache the response, as it may contain information specific to a logged in user. This is handled in most cases, but some forms of access such as the Python in operator were overlooked. The severity and risk depend on the application being hosted behind a caching proxy that doesn't ignore responses with cookies, not setting a Cache-Control header to mark pages as private or non-cacheable, and accessing the session in a way that only touches keys without reading values or mutating the session. The issue has been fixed in version 3.1.3.",
+      "recommendation": "Upgrade flask to version 3.1.3 or later.",
+      "resource_type": "Python package",
+      "resource_name": "flask",
+      "severity": "LOW",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1530",
+      "technique_name": "Data from Local System",
+      "tactic": "Collection",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The behavior involves accidentally exposing sensitive session data via caching a response that shouldn't be cached. This aligns with sensitive data being inadvertently made accessible to unauthorized parties, which falls under collection."
+    }
+  },
+  "FND-U-36": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "requirements.txt",
+      "finding_title": "jinja2: HTML attribute injection when passing user input as keys to xmlattr filter",
+      "description": "Jinja is an extensible templating engine. Special placeholders in the template allow writing code similar to Python syntax. It is possible to inject arbitrary HTML attributes into the rendered HTML template, potentially leading to Cross-Site Scripting (XSS). The Jinja `xmlattr` filter can be abused to inject arbitrary HTML attribute keys and values, bypassing the auto escaping mechanism and potentially leading to XSS. It may also be possible to bypass attribute validation checks if they are blacklist-based.",
+      "recommendation": "Upgrade jinja2 to version 3.1.3 or later.",
+      "resource_type": "Python package",
+      "resource_name": "jinja2",
+      "severity": "MEDIUM",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1059.007",
+      "technique_name": "Cross-Site Scripting (XSS)",
+      "tactic": "Execution",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding highlights a vulnerability in Jinja2 that can lead to Cross-Site Scripting (XSS) by abusing the `xmlattr` filter. This technique maps to the MITRE ATT&CK tactic 'Execution' as it enables adversaries to execute malicious HTML attributes via user input, potentially compromising systems or gathering sensitive information. Due to its potential for exploitation in Initial Access and other critical stages, the severity is adjusted to CRITICAL."
+    }
+  },
+  "FND-TS-2": {
+    "finding": {
+      "tool_name": "trivy-sca",
+      "file_path": "requirements.txt",
+      "finding_title": "jinja2: accepts keys containing non-attribute characters",
+      "description": "Jinja is an extensible templating engine. The `xmlattr` filter in affected versions of Jinja accepts keys containing non-attribute characters. XML/HTML attributes cannot contain spaces, `/`, `>`, or `=`, as each would then be interpreted as starting a separate attribute. If an application accepts keys (as opposed to only values) as user input, and renders these in pages that other users see as well, an attacker could use this to inject other attributes and perform XSS. The fix for CVE-2024-22195 only addressed spaces but not other characters. Accepting keys as user input is now explicitly considered an unintended use case of the `xmlattr` filter, and code that does so without otherwise validating the input should be flagged as insecure, regardless of Jinja version. Accepting _values_ as user input continues to be safe. This vulnerability is fixed in 3.1.4.",
+      "recommendation": "Upgrade jinja2 to version 3.1.4 or later.",
+      "resource_type": "Python package",
+      "resource_name": "jinja2",
+      "severity": "MEDIUM",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1213",
+      "technique_name": "Data from Information Repositories",
+      "tactic": "Collection",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The vulnerability in Jinja2 with the 'xmlattr' filter could be exploited to craft malicious inputs that allow unauthorized data injection or manipulation, affecting data loaded into views or templates that subsequent users interact with. This closely aligns with adversaries extracting or manipulating data from application repositories or resources, a behavior captured under 'Data from Information Repositories (T1213)' in the MITRE ATT&CK framework. Collection tactics are generally rated as 'MEDIUM' severity."
+    }
+  },
+  "FND-TS-3": {
+    "finding": {
+      "tool_name": "trivy-sca",
+      "file_path": "requirements.txt",
+      "finding_title": "jinja2: Jinja has a sandbox breakout through malicious filenames",
+      "description": "Jinja is an extensible templating engine. In versions on the 3.x branch prior to 3.1.5, a bug in the Jinja compiler allows an attacker that controls both the content and filename of a template to execute arbitrary Python code, regardless of if Jinja's sandbox is used. To exploit the vulnerability, an attacker needs to control both the filename and the contents of a template. Whether that is the case depends on the type of application using Jinja. This vulnerability impacts users of applications which execute untrusted templates where the template author can also choose the template filename. This vulnerability is fixed in 3.1.5.",
+      "recommendation": "Upgrade jinja2 to version 3.1.5 or later.",
+      "resource_type": "Python package",
+      "resource_name": "jinja2",
+      "severity": "MEDIUM",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1059.006",
+      "technique_name": "Template Injection",
+      "tactic": "Execution",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The described vulnerability in Jinja2 allows an attacker to execute arbitrary Python code if they can control both the content and the filename of a template. This aligns closely with MITRE ATT&CK's 'Template Injection' under the 'Execution' tactic. Given the possibility of arbitrary code execution, the adjusted severity is CRITICAL."
+    }
+  },
+  "FND-TS-4": {
+    "finding": {
+      "tool_name": "trivy-sca",
+      "file_path": "requirements.txt",
+      "finding_title": "jinja2: Jinja has a sandbox breakout through indirect reference to format method",
+      "description": "Jinja is an extensible templating engine. Prior to 3.1.5, An oversight in how the Jinja sandboxed environment detects calls to str.format allows an attacker that controls the content of a template to execute arbitrary Python code. To exploit the vulnerability, an attacker needs to control the content of a template. Whether that is the case depends on the type of application using Jinja. This vulnerability impacts users of applications which execute untrusted templates. Jinja's sandbox does catch calls to str.format and ensures they don't escape the sandbox. However, it's possible to store a reference to a malicious string's format method, then pass that to a filter that calls it. No such filters are built-in to Jinja, but could be present through custom filters in an application. After the fix, such indirect calls are also handled by the sandbox. This vulnerability is fixed in 3.1.5.",
+      "recommendation": "Upgrade jinja2 to version 3.1.5 or later.",
+      "resource_type": "Python package",
+      "resource_name": "jinja2",
+      "severity": "MEDIUM",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1059.006",
+      "technique_name": "Python",
+      "tactic": "Execution",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The vulnerability allows exploiting Python's execution engine to execute arbitrary code, directly leading to the execution tactic and critical severity due to its potential impact on system control, making it an immediate threat vector."
+    }
+  },
+  "FND-TS-5": {
+    "finding": {
+      "tool_name": "trivy-sca",
+      "file_path": "requirements.txt",
+      "finding_title": "jinja2: Jinja sandbox breakout through attr filter selecting format method",
+      "description": "Jinja is an extensible templating engine. Prior to 3.1.6, an oversight in how the Jinja sandboxed environment interacts with the |attr filter allows an attacker that controls the content of a template to execute arbitrary Python code. To exploit the vulnerability, an attacker needs to control the content of a template. Whether that is the case depends on the type of application using Jinja. This vulnerability impacts users of applications which execute untrusted templates. Jinja's sandbox does catch calls to str.format and ensures they don't escape the sandbox. However, it's possible to use the |attr filter to get a reference to a string's plain format method, bypassing the sandbox. After the fix, the |attr filter no longer bypasses the environment's attribute lookup. This vulnerability is fixed in 3.1.6.",
+      "recommendation": "Upgrade jinja2 to version 3.1.6 or later.",
+      "resource_type": "Python package",
+      "resource_name": "jinja2",
+      "severity": "MEDIUM",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1059",
+      "technique_name": "Command and Scripting Interpreter",
+      "tactic": "Execution",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The vulnerability allows attackers to execute arbitrary Python code by bypassing the Jinja sandbox, falling under Execution tactic because it directly facilitates malicious code execution. Severe exploitation impact aligns severity to CRITICAL, with HIGH confidence due to the reliable description of the issue."
+    }
+  },
+  "FND-TS-6": {
+    "finding": {
+      "tool_name": "trivy-sca",
+      "file_path": "requirements.txt",
+      "finding_title": "python-werkzeug: user may execute code on a developer's machine",
+      "description": "Werkzeug is a comprehensive WSGI web application library. The debugger in affected versions of Werkzeug can allow an attacker to execute code on a developer's machine under some circumstances. This requires the attacker to get the developer to interact with a domain and subdomain they control, and enter the debugger PIN, but if they are successful it allows access to the debugger even if it is only running on localhost. This also requires the attacker to guess a URL in the developer's application that will trigger the debugger. This vulnerability is fixed in 3.0.3.",
+      "recommendation": "Upgrade werkzeug to version 3.0.3 or later.",
+      "resource_type": "Python package",
+      "resource_name": "werkzeug",
+      "severity": "HIGH",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1059.006",
+      "technique_name": "Python",
+      "tactic": "Execution",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The vulnerability enables attackers to execute code within the developer's environment, which directly corresponds to the Execution tactic. As it can allow direct attacker control in critical systems when exploited, the severity is marked as critical."
+    }
+  },
+  "FND-U-37": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "requirements.txt",
+      "finding_title": "python-werkzeug: high resource consumption leading to denial of service",
+      "description": "Werkzeug is a comprehensive WSGI web application library. If an upload of a file that starts with CR or LF and then is followed by megabytes of data without these characters: all of these bytes are appended chunk by chunk into internal bytearray and lookup for boundary is performed on growing buffer. This allows an attacker to cause a denial of service by sending crafted multipart data to an endpoint that will parse it. The amount of CPU time required can block worker processes from handling legitimate requests. This vulnerability has been patched in version 3.0.1.",
+      "recommendation": "Upgrade werkzeug to version 3.0.1 or 2.3.8 to address this vulnerability.",
+      "resource_type": "Python package",
+      "resource_name": "werkzeug",
+      "severity": "MEDIUM",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1499",
+      "technique_name": "Endpoint DoS",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The described vulnerability in Werkzeug results in resource consumption that can lead to a Denial of Service (DoS) condition. This aligns with the technique 'Endpoint DoS' under the Impact tactic in MITRE ATT&CK. Based on the context of impact as defined by MITRE, the severity is adjusted to HIGH. Confidence is also high, as the observed behavior directly matches the description of this MITRE technique."
+    }
+  },
+  "FND-TS-7": {
+    "finding": {
+      "tool_name": "trivy-sca",
+      "file_path": "requirements.txt",
+      "finding_title": "werkzeug: python-werkzeug: Werkzeug safe_join not safe on Windows",
+      "description": "Werkzeug is a Web Server Gateway Interface web application library. On Python < 3.11 on Windows, os.path.isabs() does not catch UNC paths like //server/share. Werkzeug's safe_join() relies on this check, and so can produce a path that is not safe, potentially allowing unintended access to data. Applications using Python >= 3.11, or not using Windows, are not vulnerable. Werkzeug version 3.0.6 contains a patch.",
+      "recommendation": "Upgrade werkzeug to version 3.0.6 or later.",
+      "resource_type": "Python package",
+      "resource_name": "werkzeug",
+      "severity": "MEDIUM",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "rationale": "The vulnerability in Werkzeug exploits UNC path mismanagement that potentially allows access to unintended data. While this doesn't directly map to an active credential theft technique, the sensitive handling of file paths and data location aligns with access misconfiguration. Credential Access denotes sensitive exposure's mitigable but critical degree."
+    }
+  },
+  "FND-TS-8": {
+    "finding": {
+      "tool_name": "trivy-sca",
+      "file_path": "requirements.txt",
+      "finding_title": "werkzeug: python-werkzeug: Werkzeug possible resource exhaustion when parsing file data in forms",
+      "description": "Werkzeug is a Web Server Gateway Interface web application library. Applications using `werkzeug.formparser.MultiPartParser` corresponding to a version of Werkzeug prior to 3.0.6 to parse `multipart/form-data` requests (e.g. all flask applications) are vulnerable to a relatively simple but effective resource exhaustion (denial of service) attack. A specifically crafted form submission request can cause the parser to allocate and block 3 to 8 times the upload size in main memory. There is no upper limit; a single upload at 1 Gbit/s can exhaust 32 GB of RAM in less than 60 seconds. Werkzeug version 3.0.6 fixes this issue.",
+      "recommendation": "Upgrade to Werkzeug version 3.0.6 or later.",
+      "resource_type": "Python package",
+      "resource_name": "werkzeug",
+      "severity": "MEDIUM",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1499",
+      "technique_name": "Unable to map",
+      "tactic": "Unknown",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "LOW",
+      "rationale": "Based on the extracted details from the finding, the threat behavior aligns with resource exhaustion or Denial of Service (DoS) attacks through exploitation of software vulnerabilities.\n\nI will now search for relevant MITRE techniques matching this type of behavior.The relevant MITRE ATT&CK technique matching the threat behavior described in the finding is **\"Endpoint Denial of Service\" (T1499)**. This technique involves adversaries attempting to disrupt the availability of a system to end users"
+    }
+  },
+  "FND-TS-9": {
+    "finding": {
+      "tool_name": "trivy-sca",
+      "file_path": "requirements.txt",
+      "finding_title": "Werkzeug: Denial of service via Windows device names in path segments",
+      "description": "Werkzeug is a comprehensive WSGI web application library. Prior to version 3.1.4, Werkzeug's safe_join function allows path segments with Windows device names. On Windows, there are special device names such as CON, AUX, etc that are implicitly present and readable in every directory. send_from_directory uses safe_join to safely serve files at user-specified paths under a directory. If the application is running on Windows, and the requested path ends with a special device name, the file will be opened successfully, but reading will hang indefinitely. This issue has been patched in version 3.1.4.",
+      "recommendation": "Upgrade Werkzeug to version 3.1.4 or later.",
+      "resource_type": "Python package",
+      "resource_name": "werkzeug",
+      "severity": "MEDIUM",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1499.001",
+      "technique_name": "Direct Network Flood",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding involves a denial of service vulnerability that aligns with MITRE ATT&CK technique T1499.001 (Direct Network Flood). This tactic is under 'Impact,' which can disrupt services or cause operational downtime. The adjusted severity is set to HIGH given its potential implications on availability."
+    }
+  },
+  "FND-TS-10": {
+    "finding": {
+      "tool_name": "trivy-sca",
+      "file_path": "requirements.txt",
+      "finding_title": "Werkzeug safe_join() allows Windows special device names with compound extensions",
+      "description": "Werkzeug is a comprehensive WSGI web application library. Prior to version 3.1.5, Werkzeug's safe_join function allows path segments with Windows device names that have file extensions or trailing spaces. On Windows, there are special device names such as CON, AUX, etc that are implicitly present and readable in every directory. Windows still accepts them with any file extension, such as CON.txt, or trailing spaces such as CON. This issue has been patched in version 3.1.5.",
+      "recommendation": "Upgrade Werkzeug to version 3.1.5 or later.",
+      "resource_type": "Python package",
+      "resource_name": "werkzeug",
+      "severity": "MEDIUM",
+      "scan_type": "SCA",
+      "detected_by_tools": [
+        "trivy-sca"
+      ],
+      "duplicate_count": 2,
+      "merged_from_indices": [
+        95,
+        96
+      ],
+      "combined_recommendations": [
+        "Upgrade Werkzeug to version 3.1.5 or later.",
+        "Upgrade Werkzeug to version 3.1.6 or later."
+      ],
+      "dedup_validation": {
+        "validator_explanation": "Both findings refer to the same underlying issue with Werkzeug's safe_join() function and suggest upgrading the same resource in the same file. The version recommendations differ slightly but point towards resolving the identical vulnerability.",
+        "validator_keep_index": 1
+      }
+    },
+    "mitre_analysis": {
+      "technique_id": "T1574.009",
+      "technique_name": "Path Interception by Unquoted Path",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The vulnerability allows unsafe path resolutions using device names, which attackers can leverage for defense evasion via path manipulation."
+    }
+  },
+  "FND-TG-1": {
+    "finding": {
+      "tool_name": "trivy-image",
+      "file_path": "N/A",
+      "finding_title": "coreutils: Non-privileged session can escape to the parent session in chroot",
+      "description": "chroot in GNU coreutils, when used with --userspec, allows local users to escape to the parent session via a crafted TIOCSTI ioctl call, which pushes characters to the terminal's input buffer.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "coreutils@8.32-4.1ubuntu1.2",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1611",
+      "technique_name": "Escape to Host",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding demonstrates a vulnerability in GNU coreutils chroot allowing users to escape to the parent session, potentially elevating privileges and enabling unauthorized access to the host."
+    }
+  },
+  "FND-U-38": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "binutils: libiberty/rust-demangle.c in GNU GCC 11.2 allows stack exhaustion in demangle_const",
+      "description": "libiberty/rust-demangle.c in GNU GCC 11.2 allows stack consumption in demangle_const, as demonstrated by nm-new.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "gcc-12-base@12.3.0-1ubuntu1~22.04.2",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1055.011",
+      "technique_name": "Extra Window Memory Injection",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The vulnerability described allows for stack exhaustion that could potentially be leveraged for injecting malicious behavior or bypassing standard process defenses in container environments. This aligns with adversarial goals of evading defenses."
+    }
+  },
+  "FND-U-39": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "binutils: libiberty/rust-demangle.c in GNU GCC 11.2 allows stack exhaustion in demangle_const",
+      "description": "libiberty/rust-demangle.c in GNU GCC 11.2 allows stack consumption in demangle_const, as demonstrated by nm-new.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "libgcc-s1@12.3.0-1ubuntu1~22.04.2",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The issue in `binutils: libiberty/rust-demangle.c` relates to stack consumption, which may expose details of the Docker/container environment if exploited. This aligns with the container discovery tactics in MITRE ATT&CK. It does not immediately suggest critical actions like privilege escalation or execution but fits in the context of discovery, warranting a severity adjustment to MEDIUM with high confidence."
+    }
+  },
+  "FND-U-40": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "binutils: libiberty/rust-demangle.c in GNU GCC 11.2 allows stack exhaustion in demangle_const",
+      "description": "libiberty/rust-demangle.c in GNU GCC 11.2 allows stack consumption in demangle_const, as demonstrated by nm-new.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "libstdc++6@12.3.0-1ubuntu1~22.04.2",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1592",
+      "technique_name": "Gather Victim Host Information",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The finding describes stack consumption vulnerability potentially allowing adversaries to gather insights about the victim's host environment, matching techniques involving host information discovery. The context aligns with the Discovery tactic in MITRE ATT&CK rather than direct exploitation or higher-severity tactics."
+    }
+  },
+  "FND-U-41": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "gnupg: GnuPG: Signature bypass via form feed character in signed messages",
+      "description": "In GnuPG through 2.4.8, if a signed message has \\f at the end of a plaintext line, an adversary can construct a modified message that places additional text after the signed material, such that signature verification of the modified message succeeds (although an \"invalid armor\" message is printed during verification). This is related to use of \\f as a marker to denote truncation of a long plaintext line.",
+      "recommendation": "Update the gpgv package to a patched version that addresses CVE-2025-68972.",
+      "resource_type": "Docker",
+      "resource_name": "gpgv@2.2.27-3ubuntu2.5",
+      "severity": "MEDIUM",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1600",
+      "technique_name": "Weaken Encryption",
+      "tactic": "defense-evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding describes a scenario where encryption verification can be bypassed due to manipulation of message properties using form feed characters. This aligns with the 'Weaken Encryption' technique under the Defense Evasion tactic as it undermines trust in cryptographic signatures, a critical defense mechanism."
+    }
+  },
+  "FND-U-42": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "gnupg: denial of service issue (resource consumption) using compressed packets",
+      "description": "GnuPG can be made to spin on a relatively small input by (for example) crafting a public key with thousands of signatures attached, compressed down to just a few KB.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "gpgv@2.2.27-3ubuntu2.5",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1499.001",
+      "technique_name": "OS Exhaustion Flood",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The finding describes a Denial-of-Service (DoS) scenario using compressed packets, potentially overwhelming resources. This matches the technique of exhausting operating system resources, affecting the availability of systems."
+    }
+  },
+  "FND-U-43": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "gnutls: GnuTLS: Denial of Service via excessive resource consumption during certificate verification",
+      "description": "A flaw was found in GnuTLS. This vulnerability allows a denial of service (DoS) by excessive CPU (Central Processing Unit) and memory consumption via specially crafted malicious certificates containing a large number of name constraints and subject alternative names (SANs).",
+      "recommendation": "Upgrade libgnutls30 to version 3.7.3-4ubuntu1.8 or later.",
+      "resource_type": "Docker",
+      "resource_name": "libgnutls30@3.7.3-4ubuntu1.7",
+      "severity": "MEDIUM",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1499",
+      "technique_name": "Endpoint Denial of Service",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The vulnerability described involves excessive resource consumption leading to denial of service. The mapped MITRE ATT&CK technique T1499 aligns with such DoS activities under the 'Impact' tactic due to potential disruptions, justifying the higher severity and strong confidence in this assessment."
+    }
+  },
+  "FND-U-44": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "libgcrypt: vulnerable to Marvin Attack",
+      "description": "A timing-based side-channel flaw was found in libgcrypt's RSA implementation. This issue may allow a remote attacker to initiate a Bleichenbacher-style attack, which can lead to the decryption of RSA ciphertexts.",
+      "recommendation": "Update libgcrypt20 to a patched version once available.",
+      "resource_type": "Docker",
+      "resource_name": "libgcrypt20@1.9.4-3ubuntu3",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1212",
+      "technique_name": "Exploitation for Credential Access",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The vulnerability in libgcrypt's RSA implementation may allow adversaries to exploit the software to conduct a Bleichenbacher-style attack, ultimately resulting in the decryption of RSA ciphertexts. This maps to the MITRE ATT&CK technique T1212 'Exploitation for Credential Access', which is part of a critical tactic as compromised credentials can significantly impact an organization's overall security."
+    }
+  },
+  "FND-U-45": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "gnutls: Stack-based Buffer Overflow in gnutls_pkcs11_token_init() Function",
+      "description": "A flaw was found in the GnuTLS library, specifically in the gnutls_pkcs11_token_init() function that handles PKCS#11 token initialization. When a token label longer than expected is processed, the function writes past the end of a fixed-size stack buffer. This programming error can cause the application using GnuTLS to crash or, in certain conditions, be exploited for code execution. As a result, systems or applications relying on GnuTLS may be vulnerable to a denial of service or local privilege escalation attacks.",
+      "recommendation": "Upgrade libgnutls30 to version 3.7.3-4ubuntu1.8 or later.",
+      "resource_type": "Docker",
+      "resource_name": "libgnutls30@3.7.3-4ubuntu1.7",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1068",
+      "technique_name": "Exploitation for Privilege Escalation",
+      "tactic": "privilege-escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The stack-based buffer overflow vulnerability in the `gnutls_pkcs11_token_init` function of the GnuTLS library can potentially lead to privilege escalation by enabling an adversary to execute crafted code. This aligns with the MITRE technique 'Exploitation for Privilege Escalation,' as the flaw enables adversaries to escalate their access privileges in affected systems."
+    }
+  },
+  "FND-U-46": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "ncurses: segmentation fault via _nc_wrap_entry()",
+      "description": "NCurse v6.4-20230418 was discovered to contain a segmentation fault via the component _nc_wrap_entry().",
+      "recommendation": "Update the package 'libncurses6' to a patched version once available.",
+      "resource_type": "Docker",
+      "resource_name": "libncurses6@6.3-2ubuntu0.1",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The segmentation fault in the ncurses library could potentially be exploited by adversaries to identify weaknesses or resources within containerized environments, aligning with the Discovery tactic in MITRE ATT&CK. Given its limited exploitability at this stage, the severity remains MEDIUM with high confidence."
+    }
+  },
+  "FND-U-47": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "ncurses: segmentation fault via _nc_wrap_entry()",
+      "description": "NCurse v6.4-20230418 was discovered to contain a segmentation fault via the component _nc_wrap_entry().",
+      "recommendation": "Update the package 'libncursesw6' to a fixed version when available or apply vendor-provided patches.",
+      "resource_type": "Container",
+      "resource_name": "libncursesw6@6.3-2ubuntu0.1",
+      "severity": "LOW",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The finding describes a vulnerability in ncurses that could lead to a segmentation fault, potentially giving adversaries insight into container or application resources. Based on the context, this maps to the MITRE ATT&CK technique T1613 (Container and Resource Discovery) under the Discovery tactic. The adjusted severity is medium due to its potential threat to container environments without directly leading to higher-risk impacts like execution or privilege escalation, and the confidence level is medium as the existing details provide some clarity but not complete certainty."
+    }
+  },
+  "FND-U-48": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "ncurses: segmentation fault via _nc_wrap_entry()",
+      "description": "NCurse v6.4-20230418 was discovered to contain a segmentation fault via the component _nc_wrap_entry().",
+      "recommendation": "Update the package 'libtinfo6' to a version that addresses CVE-2023-50495.",
+      "resource_type": "Container",
+      "resource_name": "libtinfo6@6.3-2ubuntu0.1",
+      "severity": "LOW",
+      "scan_type": "SCA"
+    },
+    "mitre_analysis": {
+      "technique_id": "UNMAPPED",
+      "technique_name": "Unable to map",
+      "tactic": "Unknown",
+      "adjusted_severity": "LOW",
+      "confidence": "LOW",
+      "rationale": "The finding describes a segmentation fault (`_nc_wrap_entry()`) in the `ncurses` library component. This issue is relevant to debugging or understanding potential vulnerabilities in software handling user execution contexts or memory access flaws.\n\nMapping this to the MITRE ATT&CK framework:\n- Memory corruption issues like segmentation faults may align with exploitation techniques, such as exploitation of software vulnerabilities exploiting user interaction.\n\nTo provide clarity, segmentation fau"
+    }
+  },
+  "FND-U-49": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "ncurses: segmentation fault via _nc_wrap_entry()",
+      "description": "NCurse v6.4-20230418 was discovered to contain a segmentation fault via the component _nc_wrap_entry().",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "ncurses-base@6.3-2ubuntu0.1",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The finding indicates a segmentation fault vulnerability in a Docker container resource. This maps to adversaries potentially discovering and exploiting vulnerabilities in container resources. Thus, it aligns with the 'Discovery' tactic in the MITRE ATT&CK framework."
+    }
+  },
+  "FND-U-50": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "ncurses: segmentation fault via _nc_wrap_entry()",
+      "description": "NCurse v6.4-20230418 was discovered to contain a segmentation fault via the component _nc_wrap_entry().",
+      "recommendation": "Update ncurses-bin to a patched version or apply security updates provided by the vendor.",
+      "resource_type": "Docker",
+      "resource_name": "ncurses-bin@6.3-2ubuntu0.1",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The segmentation fault via the ncurses _nc_wrap_entry potentially reveals container-specific resource-related vulnerabilities. It aligns with resource and container discovery concepts but lacks direct ties to execution or elevated security impacts, warranting its severity as medium."
+    }
+  },
+  "FND-U-51": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "linux-pam: Incomplete fix for CVE-2025-6020",
+      "description": "A flaw was found in linux-pam. The pam_namespace module may improperly handle user-controlled paths, allowing local users to exploit symlink attacks and race conditions to elevate their privileges to root. This CVE provides a \"complete\" fix for CVE-2025-6020.",
+      "recommendation": "Update the 'libpam-modules' package to a patched version once available.",
+      "resource_type": "Docker",
+      "resource_name": "libpam-modules@1.4.0-11ubuntu2.6",
+      "severity": "MEDIUM",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1556.003",
+      "technique_name": "Pluggable Authentication Modules",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding describes exploitation of linux-pam's pam_namespace module allowing potential privilege escalation to root, matching the MITRE technique for modifying PAM to bypass authentication controls."
+    }
+  },
+  "FND-TG-2": {
+    "finding": {
+      "tool_name": "trivy-image",
+      "file_path": "N/A",
+      "finding_title": "linux-pam: Incomplete fix for CVE-2025-6020",
+      "description": "A flaw was found in linux-pam. The pam_namespace module may improperly handle user-controlled paths, allowing local users to exploit symlink attacks and race conditions to elevate their privileges to root. This CVE provides a \"complete\" fix for CVE-2025-6020.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "libpam-modules-bin@1.4.0-11ubuntu2.6",
+      "severity": "MEDIUM",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1556.003",
+      "technique_name": "Pluggable Authentication Modules",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The exploitation of linux-pam for symlink attacks and race conditions to elevate privileges aligns with the abuse of Pluggable Authentication Modules (PAM) as described in T1556.003. The tactic pertains to 'Credential Access' with potential root privilege escalation, justifying a CRITICAL severity level."
+    }
+  },
+  "FND-U-52": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "linux-pam: Incomplete fix for CVE-2025-6020",
+      "description": "A flaw was found in linux-pam. The pam_namespace module may improperly handle user-controlled paths, allowing local users to exploit symlink attacks and race conditions to elevate their privileges to root. This CVE provides a \"complete\" fix for CVE-2025-6020.",
+      "recommendation": "Update the libpam-runtime package to a version that addresses CVE-2025-8941.",
+      "resource_type": "Docker",
+      "resource_name": "libpam-runtime@1.4.0-11ubuntu2.6",
+      "severity": "MEDIUM",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1574.007",
+      "technique_name": "Path Interception by PATH Environment Variable",
+      "tactic": "Privilege Escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding describes the improper handling of user-controlled paths in the pam_namespace module of linux-pam, which can allow local users to perform symlink attacks and race conditions. Such behavior is consistent with path interception, specifically by manipulating the PATH environment variable, to escalate privileges to root. The mapped technique aligns with this behavior. Elevating privileges to root makes this finding critical."
+    }
+  },
+  "FND-TG-3": {
+    "finding": {
+      "tool_name": "trivy-image",
+      "file_path": "N/A",
+      "finding_title": "linux-pam: Incomplete fix for CVE-2025-6020",
+      "description": "A flaw was found in linux-pam. The pam_namespace module may improperly handle user-controlled paths, allowing local users to exploit symlink attacks and race conditions to elevate their privileges to root. This CVE provides a \"complete\" fix for CVE-2025-6020.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "libpam0g@1.4.0-11ubuntu2.6",
+      "severity": "MEDIUM",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1574.007",
+      "technique_name": "Path Interception by PATH Environment Variable",
+      "tactic": "privilege-escalation",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The finding describes exploitation of improperly handled user-controlled paths in linux-pam, which matches behaviors of path interception to exploit vulnerabilities and elevate privileges, aligning with T1574.007 under Privilege Escalation. Given the exploitation leads to potential root access, severity was raised to CRITICAL with high confidence."
+    }
+  },
+  "FND-U-53": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "pcre2: negative repeat value in a pcre2test subject line leads to infinite loop",
+      "description": "Integer overflow vulnerability in pcre2test before 10.41 allows attackers to cause a denial of service or other unspecified impacts via negative input.",
+      "recommendation": "Update libpcre2-8-0 to a fixed version or apply patches as recommended by the vendor.",
+      "resource_type": "Docker",
+      "resource_name": "libpcre2-8-0@10.39-3ubuntu0.1",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1499",
+      "technique_name": "Endpoint Denial of Service",
+      "tactic": "Impact",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The described vulnerability (integer overflow leading to denial of service) aligns with the MITRE ATT&CK technique T1499, which focuses on disrupting or exhausting endpoint resources. This maps directly to the 'Impact' tactic, emphasizing the modified severity."
+    }
+  },
+  "FND-U-54": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "pcre: OP_KETRMAX feature in the match function in pcre_exec.c",
+      "description": "In PCRE 8.41, the OP_KETRMAX feature in the match function in pcre_exec.c allows stack exhaustion (uncontrolled recursion) when processing a crafted regular expression.",
+      "recommendation": "Upgrade the package 'libpcre3' to a fixed version or apply patches provided by the vendor.",
+      "resource_type": "Docker",
+      "resource_name": "libpcre3@2:8.39-13ubuntu0.22.04.1",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1613",
+      "technique_name": "Container and Resource Discovery",
+      "tactic": "Discovery",
+      "adjusted_severity": "LOW",
+      "confidence": "MEDIUM",
+      "rationale": "The finding indicates a crafted regular expression causing stack exhaustion in PCRE within a Docker container, which relates to discovering vulnerabilities in containerized environments. It aligns broadly with the MITRE ATT&CK 'Container and Resource Discovery' technique under the Discovery tactic. Severity remains LOW as it doesn't directly enable impactful adversary actions."
+    }
+  },
+  "FND-U-55": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "systemd-resolved: Unsigned name response in signed zone is not refused when DNSSEC=yes",
+      "description": "A vulnerability was found in systemd-resolved. This issue may allow systemd-resolved to accept records of DNSSEC-signed domains even when they have no signature, allowing man-in-the-middles (or the upstream DNS resolver) to manipulate records.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "libsystemd0@249.11-0ubuntu3.17",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1036.005",
+      "technique_name": "Trust Modification",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The described vulnerability in systemd-resolved could allow manipulation of DNSSEC-signed domain records, bypassing DNSSEC validation and effectively enabling trust modification. This aligns with the 'Defense Evasion' tactic, as it circumvents security measures designed for domain name integrity."
+    }
+  },
+  "FND-TG-4": {
+    "finding": {
+      "tool_name": "trivy-image",
+      "file_path": "N/A",
+      "finding_title": "systemd-resolved: Unsigned name response in signed zone is not refused when DNSSEC=yes",
+      "description": "A vulnerability was found in systemd-resolved. This issue may allow systemd-resolved to accept records of DNSSEC-signed domains even when they have no signature, allowing man-in-the-middles (or the upstream DNS resolver) to manipulate records.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "libudev1@249.11-0ubuntu3.17",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1557",
+      "technique_name": "Adversary-in-the-Middle",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The issue in systemd-resolved allows a man-in-the-middle attack where unsigned DNS records in DNSSEC-enabled zones are accepted, enabling manipulation of DNS responses. This matches the MITRE ATT&CK adversary-in-the-middle technique and facilitates credential capture, warranting a critical severity."
+    }
+  },
+  "FND-U-56": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "zstd: mysql: buffer overrun in util.c",
+      "description": "A vulnerability was found in zstd v1.4.10, where an attacker can supply empty string as an argument to the command line tool to cause buffer overrun.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "libzstd1@1.4.8+dfsg-3build1",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1560.001",
+      "technique_name": "Archive via Utility",
+      "tactic": "Collection",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "rationale": "The vulnerability in zstd v1.4.10 impacting the Docker resource relates to buffer overrun exploitation, usually aligned with data manipulation or collection tactics. While exploitation can cause a systemic buffer overflow issue, its alignment with 'Collection' is most likely due to its potential integration within command-line utilities."
+    }
+  },
+  "FND-U-57": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "shadow: Improper input validation in shadow-utils package utility chfn",
+      "description": "In Shadow 4.13, it is possible to inject control characters into fields provided to the SUID program chfn (change finger). Although it is not possible to exploit this directly (e.g., adding a new user fails because \\n is in the block list), it is possible to misrepresent the /etc/passwd file when viewed. Use of \\r manipulations and Unicode characters to work around blocking of the : character make it possible to give the impression that a new user has been added. In other words, an adversary may be able to convince a system administrator to take the system offline (an indirect, social-engineered denial of service) by demonstrating that \"cat /etc/passwd\" shows a rogue user account.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "login@1:4.8.1-2ubuntu2.2",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1564.009",
+      "technique_name": "Resource Forking",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "MEDIUM",
+      "rationale": "The finding describes an exploitation of system utilities to manipulate visual representation in the /etc/passwd file, misleading administrators and potentially causing them to take unneeded corrective actions. This aligns most closely with defense evasion techniques that focus on hiding or distorting evidence of malicious activities. Although it does not directly exploit privilege escalation or control, the social engineering element poses a significant risk."
+    }
+  },
+  "FND-TG-5": {
+    "finding": {
+      "tool_name": "trivy-image",
+      "file_path": "N/A",
+      "finding_title": "shadow: Improper input validation in shadow-utils package utility chfn",
+      "description": "In Shadow 4.13, it is possible to inject control characters into fields provided to the SUID program chfn (change finger). Although it is not possible to exploit this directly (e.g., adding a new user fails because \\n is in the block list), it is possible to misrepresent the /etc/passwd file when viewed. Use of \\r manipulations and Unicode characters to work around blocking of the : character make it possible to give the impression that a new user has been added. In other words, an adversary may be able to convince a system administrator to take the system offline (an indirect, social-engineered denial of service) by demonstrating that \"cat /etc/passwd\" shows a rogue user account.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "passwd@1:4.8.1-2ubuntu2.2",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1556.003",
+      "technique_name": "Pluggable Authentication Modules",
+      "tactic": "Defense Evasion",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The vulnerability in the shadow-utils 'chfn' utility allows manipulation of the /etc/passwd file via control characters and Unicode character injection, convincing administrators of false entries. This aligns with T1556.003, which involves modifying authentication modules or configurations to evade detection. This has a high severity as it can lead to potential system trust misrepresentation and social-engineered disruption."
+    }
+  },
+  "FND-U-58": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "shadow-utils: Default subordinate ID configuration in /etc/login.defs could lead to compromise",
+      "description": "shadow-utils (aka shadow) 4.4 through 4.17.0 establishes a default /etc/subuid behavior (e.g., uid 100000 through 165535 for the first user account) that can realistically conflict with the uids of users defined on locally administered networks, potentially leading to account takeover, e.g., by leveraging newuidmap for access to an NFS home directory (or same-host resources in the case of remote logins by these local network users). NOTE: it may also be argued that system administrators should not have assigned uids, within local networks, that are within the range that can occur in /etc/subuid.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "login@1:4.8.1-2ubuntu2.2",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Persistence",
+      "adjusted_severity": "HIGH",
+      "confidence": "HIGH",
+      "rationale": "The default subordinate ID configuration potentially allowing UID conflicts could be exploited to assume valid accounts. This relates to the Persistence tactic, as it enables adversaries to maintain access or control within the system."
+    }
+  },
+  "FND-U-59": {
+    "finding": {
+      "tool_name": "Trivy",
+      "file_path": "N/A",
+      "finding_title": "shadow-utils: Default subordinate ID configuration in /etc/login.defs could lead to compromise",
+      "description": "shadow-utils (aka shadow) 4.4 through 4.17.0 establishes a default /etc/subuid behavior (e.g., uid 100000 through 165535 for the first user account) that can realistically conflict with the uids of users defined on locally administered networks, potentially leading to account takeover, e.g., by leveraging newuidmap for access to an NFS home directory (or same-host resources in the case of remote logins by these local network users). NOTE: it may also be argued that system administrators should not have assigned uids, within local networks, that are within the range that can occur in /etc/subuid.",
+      "recommendation": "N/A",
+      "resource_type": "Docker",
+      "resource_name": "passwd@1:4.8.1-2ubuntu2.2",
+      "severity": "LOW",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "Credential Access",
+      "adjusted_severity": "CRITICAL",
+      "confidence": "HIGH",
+      "rationale": "The default subordinate ID configuration in /etc/login.defs could be exploited to compromise accounts under certain conditions, such as leveraging `newuidmap` for unauthorized access. This aligns with the technique of abusing valid accounts to gain access or escalate privileges, elevating the adjusted severity to CRITICAL as it falls under Credential Access."
+    }
+  },
+  "FND-TG-6": {
+    "finding": {
+      "tool_name": "trivy-image",
+      "file_path": "N/A",
+      "finding_title": "tar: Tar path traversal",
+      "description": "GNU Tar through 1.35 allows file overwrite via directory traversal in crafted TAR archives, with a certain two-step process. First, the victim must extract an archive that contains a ../ symlink to a critical directory. Second, the victim must extract an archive that contains a critical file, specified via a relative pathname that begins with the symlink name and ends with that critical file's name. Here, the extraction follows the symlink and overwrites the critical file. This bypasses the protection mechanism of \"Member name contains '..'\" that would occur for a single TAR archive that attempted to specify the critical file via a ../ approach. For example, the first archive can contain \"x -> ../../../../../home/victim/.ssh\" and the second archive can contain x/authorized_keys. This can affect server applications that automatically extract any number of user-supplied TAR archives, and were relying on the blocking of traversal. This can also affect software installation processes in which \"tar xf\" is run more than once (e.g., when installing a package can automatically install two dependencies that are set up as untrusted tarballs instead of official packages). NOTE: the official GNU Tar manual has an otherwise-empty directory for each \"tar xf\" in its Security Rules of Thumb; however, third-party advice leads users to run \"tar xf\" more than once into the same directory.",
+      "recommendation": "Update the tar package to a patched version or avoid extracting untrusted TAR archives multiple times into the same directory.",
+      "resource_type": "Docker",
+      "resource_name": "tar@1.34+dfsg-1ubuntu0.1.22.04.2",
+      "severity": "MEDIUM",
+      "scan_type": "Container"
+    },
+    "mitre_analysis": {
+      "technique_id": "T1560.001",
+      "technique_name": "Archive via Utility",
+      "tactic": "Collection",
+      "adjusted_severity": "MEDIUM",
+      "confidence": "HIGH",
+      "rationale": "The reported behavior involves the exploitation of TAR archives to facilitate path traversal and unauthorized file overwriting, which aligns with the 'Archive via Utility' technique under the MITRE ATT&CK framework. This activity primarily supports data collection and potentially data exfiltration manipulations, which mirrors tactics described in the report. Given its threat scope, the severity is adjusted to medium with a high level of confidence."
+    }
+  }
+}
