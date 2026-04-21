@@ -7,10 +7,10 @@ import json
 from typing import Annotated
 from pydantic import Field
 
-from shared.base_agent import get_openai_client, get_deployment_name
+from shared.llm_provider import get_provider
 
 
-def perform_stride_analysis(
+async def perform_stride_analysis(
     scenarios_json: Annotated[str, Field(description="JSON string of attack scenarios from generate_attack_scenarios")],
     correlations_json: Annotated[str, Field(description="JSON string of vulnerability correlations")],
     inventory_json: Annotated[str, Field(description="JSON string of inventory results")]
@@ -45,8 +45,7 @@ def perform_stride_analysis(
     except json.JSONDecodeError:
         inventory = {}
 
-    openai_client = get_openai_client()
-    deployment = get_deployment_name()
+    provider = get_provider()
 
     arch = inventory.get('architecture', {})
     scenario_list = scenarios.get('scenarios', [])
@@ -99,17 +98,13 @@ Return JSON:
 Return ONLY valid JSON. Generate at least 10-15 threats covering all STRIDE categories."""
 
     try:
-        response = openai_client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": "You are a threat modeling expert using STRIDE methodology. Return only valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
+        stride = await provider.structured_output(
+            schema={"type": "object"},
+            prompt=prompt,
+            system="You are a threat modeling expert using STRIDE methodology. Return only valid JSON.",
             temperature=0.3,
-            response_format={"type": "json_object"}
+            max_tokens=4096,
         )
-
-        stride = json.loads(response.choices[0].message.content)
         threat_count = len(stride.get('threats', []))
         print(f"[STRIDE] Categorized {threat_count} threats")
         print(f"  By category: {stride.get('by_category', {})}")

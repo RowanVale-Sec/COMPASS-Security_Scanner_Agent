@@ -2,6 +2,13 @@
 Scanner Pipeline - MITRE ATT&CK Mapper
 Analyzes findings using MITRE ATT&CK framework with multi-agent concurrent approach.
 Creates one agent per finding to map to MITRE techniques and adjust severity.
+
+NOTE: This module is currently Azure-only. It uses `AzureOpenAIChatClient`
+directly because the MITRE lookup runs through `MCPStreamableHTTPTool`
+(agent_framework's MCP client), which is not wired through the
+provider-agnostic `LLMProvider` interface yet. Claude MCP support is tracked
+separately (see Issue #4: Scanner Revamp with Claude CLI / specialized tools).
+If `LLM_PROVIDER=claude`, callers should skip MITRE mapping or use a fallback.
 """
 
 import os
@@ -21,14 +28,18 @@ from shared.s3_helpers import download_json_from_s3, upload_json_to_s3
 
 async def analyze_findings_with_mitre(
     s3_location: Annotated[str, Field(description="S3 location (s3://bucket/key) of deduplicated findings")],
-    mitre_mcp_url: Annotated[str, Field(description="MITRE MCP server URL")] = "http://mitre-mcp:8000/mcp"
 ) -> str:
     """
     Analyze security findings using MITRE ATT&CK framework with multi-agent approach.
 
     Creates one agent per finding to map to MITRE techniques and adjust severity.
     Uses concurrent execution with rate limiting (max 15 parallel agents).
+
+    The MITRE MCP server URL is read from the MITRE_MCP_URL env var. Not exposed
+    as a tool argument because LLMs tend to hallucinate plausible-looking URLs
+    (e.g. `https://mitre-mcp.example.com`) when they see an optional parameter.
     """
+    mitre_mcp_url = os.environ.get("MITRE_MCP_URL", "http://mitre-mcp:8000/mcp")
     print(f"[MITRE] Starting multi-agent analysis for findings from {s3_location}")
 
     try:

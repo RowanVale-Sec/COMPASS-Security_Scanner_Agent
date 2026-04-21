@@ -7,14 +7,40 @@ and uploads consolidated results to S3.
 import os
 import json
 from datetime import datetime
-from typing import Annotated, List
+from typing import Annotated
 from pydantic import Field
 
-from shared.base_agent import get_openai_client, get_deployment_name
+from shared.llm_provider import LLMProvider, get_provider
 from shared.s3_helpers import upload_json_to_s3
 
 
-def aggregate_scan_results(
+FINDING_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "tool_name": {"type": "string", "description": "Name of the security tool"},
+        "file_path": {"type": "string", "description": "Path to the file with the issue"},
+        "finding_title": {"type": "string", "description": "Short title/summary"},
+        "description": {"type": "string", "description": "Detailed description"},
+        "recommendation": {"type": "string", "description": "How to fix"},
+        "resource_type": {"type": "string", "description": "Type of resource (e.g., aws_s3_bucket, Docker, Python function)"},
+        "resource_name": {"type": "string", "description": "Name/ID of the resource"},
+        "severity": {
+            "type": "string",
+            "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"],
+        },
+        "scan_type": {
+            "type": "string",
+            "enum": ["SAST", "IaC", "SCA", "Container", "Secrets", "N/A"],
+        },
+    },
+    "required": [
+        "tool_name", "file_path", "finding_title", "description",
+        "recommendation", "resource_type", "resource_name", "severity", "scan_type",
+    ],
+}
+
+
+async def aggregate_scan_results(
     scan_results_json: Annotated[str, Field(
         description="JSON string: array of metadata dicts from all scan tools, "
                     "each with 'tool', 'findings_file', and 'finding_count' keys"
@@ -24,8 +50,9 @@ def aggregate_scan_results(
     Aggregate and normalize findings from all scan tools.
 
     Accepts a variable number of tool results (not limited to 4).
-    For each raw finding, calls Azure OpenAI to extract 9 standardized fields.
-    Uploads consolidated results to S3 and returns the S3 location.
+    For each raw finding, calls the configured LLM provider to extract 9
+    standardized fields. Uploads consolidated results to S3 and returns the
+    S3 location.
     """
     print("[Aggregation] Loading findings from all tools...")
 
@@ -34,7 +61,6 @@ def aggregate_scan_results(
     except json.JSONDecodeError as e:
         return f"Error: Failed to parse scan results JSON: {e}"
 
-    # Load raw findings from each tool's output file
     all_tool_results = []
     for metadata in scan_results:
         tool_name = metadata.get('tool', 'unknown')
@@ -52,9 +78,7 @@ def aggregate_scan_results(
     total_raw = sum(len(r.get('raw_findings', [])) for r in all_tool_results)
     print(f"[Aggregation] Total raw findings from all tools: {total_raw}")
 
-    # Normalize each finding using LLM
-    openai_client = get_openai_client()
-    deployment = get_deployment_name()
+    provider = get_provider()
     consolidated = []
 
     for tool_result in all_tool_results:
@@ -65,12 +89,11 @@ def aggregate_scan_results(
 
         for idx, raw_finding in enumerate(raw_findings, 1):
             print(f"  [{tool_name}] Extracting fields from finding {idx}/{len(raw_findings)}...")
-            extracted = _extract_fields_sync(openai_client, deployment, tool_name, raw_finding)
+            extracted = await _extract_fields(provider, tool_name, raw_finding)
             consolidated.append(extracted)
 
     print(f"[Consolidation] Extracted {len(consolidated)} total findings")
 
-    # Upload to S3
     data = {
         'scan_timestamp': datetime.utcnow().isoformat(),
         'total_findings': len(consolidated),
@@ -82,8 +105,8 @@ def aggregate_scan_results(
     return s3_location
 
 
-def _extract_fields_sync(openai_client, deployment_name: str, tool_name: str, raw_finding: dict) -> dict:
-    """Use Azure OpenAI synchronously to extract 9 standardized fields from a raw finding."""
+async def _extract_fields(provider: LLMProvider, tool_name: str, raw_finding: dict) -> dict:
+    """Use the configured LLM provider to extract 9 standardized fields from a raw finding."""
     prompt = f"""You are a security findings parser. Extract the following fields from this {tool_name} finding:
 
 Required fields:
@@ -103,17 +126,12 @@ Raw finding:
 Return ONLY valid JSON with these exact field names. If a field is not available, use "N/A"."""
 
     try:
-        response = openai_client.chat.completions.create(
-            model=deployment_name,
-            messages=[{"role": "user", "content": prompt}],
+        return await provider.structured_output(
+            schema=FINDING_SCHEMA,
+            prompt=prompt,
             temperature=0.0,
             max_tokens=800,
-            response_format={"type": "json_object"}
         )
-
-        content = response.choices[0].message.content.strip()
-        return json.loads(content)
-
     except Exception as e:
         print(f"    [ERROR] Failed to extract fields: {e}")
         return {

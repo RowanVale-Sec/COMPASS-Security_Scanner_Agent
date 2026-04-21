@@ -19,11 +19,14 @@ from flask import Flask, request, jsonify
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from shared.base_agent import (
-    create_chat_client, get_scan_folder, get_s3_bucket,
-    get_deployment_name, ServiceResponseException
-)
+from shared.base_agent import get_scan_folder, get_s3_bucket
+from shared.llm_provider import get_provider
 from shared.s3_helpers import upload_json_to_s3
+
+try:
+    from agent_framework.exceptions import ServiceResponseException
+except ImportError:
+    ServiceResponseException = Exception
 
 from agents.inventory.tools.sbom_generator import generate_enhanced_sbom
 from agents.inventory.tools.architecture_analyzer import analyze_architecture
@@ -98,7 +101,7 @@ async def run_inventory_workflow(
         print(f"Scanner Results: {scanner_s3_location}")
     print("=" * 80)
 
-    chat_client = create_chat_client()
+    provider = get_provider()
 
     scanner_context = ""
     if scanner_s3_location:
@@ -107,7 +110,7 @@ You also have Scanner Agent SCA results available at: {scanner_s3_location}
 Pass this to generate_enhanced_sbom as the scanner_s3_location parameter
 to cross-reference vulnerability data with the SBOM."""
 
-    agent = chat_client.create_agent(
+    agent = provider.create_agent(
         instructions=f"""You are an application inventory analyst. Your job is to comprehensively
 catalog all assets, understand the architecture, and map data flows for a codebase.
 
@@ -161,7 +164,7 @@ IMPORTANT: Execute steps in order. Each step depends on previous results.""",
         message = str(exc)
         if "DeploymentNotFound" in message:
             raise RuntimeError(
-                f"Azure OpenAI deployment '{get_deployment_name()}' not found."
+                f"Azure OpenAI deployment not found: {exc}"
             ) from exc
         raise
 

@@ -1,6 +1,10 @@
 """
-COMPASS Base Agent - Common setup for all COMPASS agents.
-Provides Azure OpenAI credentials, S3 client, and Agent Framework client factory.
+COMPASS Base Agent - Shared env/config helpers.
+
+Historically this module also exported LLM client factory helpers; those have
+moved to `shared.llm_provider` behind a provider-agnostic interface. The Azure
+env readers below remain because `agents/scanner/pipeline/mitre_mapper.py`
+still uses `AzureOpenAIChatClient` directly for MCP tool invocation.
 """
 
 import os
@@ -8,13 +12,6 @@ import boto3
 from dotenv import load_dotenv
 
 load_dotenv()
-
-from agent_framework.azure import AzureOpenAIChatClient
-
-try:
-    from agent_framework.exceptions import ServiceResponseException
-except ImportError:
-    ServiceResponseException = Exception
 
 
 def get_azure_api_key() -> str:
@@ -71,49 +68,3 @@ def get_scan_folder() -> str:
     return os.environ.get('SCAN_FOLDER_PATH', '/scan')
 
 
-def create_chat_client() -> AzureOpenAIChatClient:
-    """Create an AzureOpenAIChatClient for the Microsoft Agent Framework."""
-    return AzureOpenAIChatClient(
-        endpoint=get_azure_endpoint(),
-        api_key=get_azure_api_key(),
-        model=get_deployment_name()
-    )
-
-
-def get_openai_client():
-    """Create a synchronous Azure OpenAI client for direct API calls."""
-    from openai import AzureOpenAI
-    return AzureOpenAI(
-        api_key=get_azure_api_key(),
-        azure_endpoint=get_azure_endpoint(),
-        api_version=os.environ.get('AZURE_OPENAI_API_VERSION', '2024-08-01-preview')
-    )
-
-
-def get_async_openai_client():
-    """Create an async Azure OpenAI client for direct API calls."""
-    from openai import AsyncAzureOpenAI
-    return AsyncAzureOpenAI(
-        api_key=get_azure_api_key(),
-        azure_endpoint=get_azure_endpoint(),
-        api_version=os.environ.get('AZURE_OPENAI_API_VERSION', '2024-08-01-preview')
-    )
-
-
-def get_embedding_deployment_name() -> str:
-    """Get Azure OpenAI embedding deployment name.
-
-    Azure OpenAI requires the deployment name (user-defined), not the model name.
-    Set AZURE_OPENAI_EMBEDDING_DEPLOYMENT in your environment to the name of your
-    text-embedding-ada-002 (or equivalent) deployment.
-    """
-    name = (
-        os.environ.get('AZURE_OPENAI_EMBEDDING_DEPLOYMENT')
-        or os.environ.get('AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME')
-    )
-    if not name:
-        raise ValueError(
-            "AZURE_OPENAI_EMBEDDING_DEPLOYMENT environment variable is required "
-            "for embedding operations (set it to your Azure embedding deployment name)"
-        )
-    return name

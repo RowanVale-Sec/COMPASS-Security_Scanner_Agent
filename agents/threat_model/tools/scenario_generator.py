@@ -7,10 +7,10 @@ import json
 from typing import Annotated
 from pydantic import Field
 
-from shared.base_agent import get_openai_client, get_deployment_name
+from shared.llm_provider import get_provider
 
 
-def generate_attack_scenarios(
+async def generate_attack_scenarios(
     correlations_json: Annotated[str, Field(description="JSON string of vulnerability-architecture correlations")],
     inventory_json: Annotated[str, Field(description="JSON string of inventory results")]
 ) -> str:
@@ -38,8 +38,7 @@ def generate_attack_scenarios(
     except json.JSONDecodeError:
         inventory = {}
 
-    openai_client = get_openai_client()
-    deployment = get_deployment_name()
+    provider = get_provider()
 
     corr_list = correlations.get('correlations', [])
     arch = inventory.get('architecture', {})
@@ -92,17 +91,13 @@ Return JSON:
 Return ONLY valid JSON."""
 
     try:
-        response = openai_client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": "You are a red team expert creating attack scenarios grounded in real vulnerability data. Return only valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
+        scenarios = await provider.structured_output(
+            schema={"type": "object"},
+            prompt=prompt,
+            system="You are a red team expert creating attack scenarios grounded in real vulnerability data. Return only valid JSON.",
             temperature=0.4,
-            response_format={"type": "json_object"}
+            max_tokens=4096,
         )
-
-        scenarios = json.loads(response.choices[0].message.content)
         count = len(scenarios.get('scenarios', []))
         print(f"[Scenarios] Generated {count} attack scenarios")
 

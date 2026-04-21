@@ -7,12 +7,11 @@ and validates clusters via AI agents before merging duplicates.
 import os
 import re
 import json
-import asyncio
 from datetime import datetime
 from typing import Annotated
 from pydantic import Field
 
-from shared.base_agent import get_azure_api_key, get_azure_endpoint, get_openai_client, get_deployment_name, get_embedding_deployment_name, create_chat_client
+from shared.llm_provider import get_embeddings_provider, get_provider
 from shared.s3_helpers import download_json_from_s3, upload_json_to_s3
 
 
@@ -48,37 +47,26 @@ async def deduplicate_findings_from_s3(
         import numpy as np
         from sklearn.metrics.pairwise import cosine_similarity
 
-        openai_client = get_openai_client()
+        embeddings_provider = get_embeddings_provider()
 
         print("[Dedup] Generating embeddings for semantic similarity...")
 
-        # Generate embeddings
-        embeddings = []
-        for idx, finding in enumerate(original_findings):
-            text = (
-                f"Title: {finding.get('finding_title', '')}\n"
-                f"Description: {finding.get('description', '')}\n"
-                f"File: {finding.get('file_path', '')}\n"
-                f"Resource: {finding.get('resource_name', '')}\n"
-                f"Severity: {finding.get('severity', '')}"
-            )
-
-            response = openai_client.embeddings.create(
-                model=get_embedding_deployment_name(),
-                input=text
-            )
-            embeddings.append(response.data[0].embedding)
-
-            if (idx + 1) % 10 == 0:
-                print(f"  Generated {idx + 1}/{original_count} embeddings")
+        texts = [
+            f"Title: {f.get('finding_title', '')}\n"
+            f"Description: {f.get('description', '')}\n"
+            f"File: {f.get('file_path', '')}\n"
+            f"Resource: {f.get('resource_name', '')}\n"
+            f"Severity: {f.get('severity', '')}"
+            for f in original_findings
+        ]
+        embeddings = embeddings_provider.embed(texts)
 
         print(f"[Dedup] Generated {len(embeddings)} embeddings")
 
         embeddings_array = np.array(embeddings)
         similarity_matrix = cosine_similarity(embeddings_array)
 
-        # Cluster similar findings
-        threshold = 0.85
+        threshold = float(os.environ.get("DEDUP_SIMILARITY_THRESHOLD", "0.85"))
         clusters = []
         processed = set()
 
@@ -101,13 +89,7 @@ async def deduplicate_findings_from_s3(
         print(f"[Dedup] Found {len(clusters)} clusters")
 
         # Validate clusters via AI agents
-        from agent_framework.azure import AzureOpenAIChatClient
-
-        chat_client = AzureOpenAIChatClient(
-            endpoint=get_azure_endpoint(),
-            api_key=get_azure_api_key(),
-            model=get_deployment_name()
-        )
+        provider = get_provider()
 
         unique_findings = []
         duplicates_removed = 0
@@ -142,10 +124,10 @@ async def deduplicate_findings_from_s3(
             )
 
             try:
-                agent = chat_client.create_agent(
+                agent = provider.create_agent(
                     name=f"DedupValidator_C{c_index}",
                     instructions=instructions,
-                    tools=[]
+                    tools=[],
                 )
                 result = await agent.run(
                     f"Assess cluster {c_index} for implementation-level duplication and return JSON."

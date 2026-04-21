@@ -7,10 +7,10 @@ import json
 from typing import Annotated
 from pydantic import Field
 
-from shared.base_agent import get_openai_client, get_deployment_name
+from shared.llm_provider import get_provider
 
 
-def correlate_vulnerabilities_with_architecture(
+async def correlate_vulnerabilities_with_architecture(
     scanner_json: Annotated[str, Field(description="JSON string of scanner results from load_scanner_results")],
     inventory_json: Annotated[str, Field(description="JSON string of inventory results from load_inventory_results")]
 ) -> str:
@@ -46,8 +46,7 @@ def correlate_vulnerabilities_with_architecture(
         print("[Correlator] No findings to correlate")
         return json.dumps({"correlations": [], "summary": "No findings to correlate"})
 
-    openai_client = get_openai_client()
-    deployment = get_deployment_name()
+    provider = get_provider()
 
     # Slim each finding to fields needed for correlation so all findings fit in context
     _CORR_FIELDS = {'finding_id', 'finding_title', 'description', 'severity',
@@ -99,17 +98,13 @@ data is at risk. Return JSON with:
 Return ONLY valid JSON. Correlate ALL findings, not just the first few."""
 
     try:
-        response = openai_client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": "You are a security analyst mapping vulnerabilities to architecture. Return only valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
+        correlations = await provider.structured_output(
+            schema={"type": "object"},
+            prompt=prompt,
+            system="You are a security analyst mapping vulnerabilities to architecture. Return only valid JSON.",
             temperature=0.2,
-            response_format={"type": "json_object"}
+            max_tokens=4096,
         )
-
-        correlations = json.loads(response.choices[0].message.content)
         count = len(correlations.get('correlations', []))
         print(f"[Correlator] Correlated {count} findings to architecture components")
 

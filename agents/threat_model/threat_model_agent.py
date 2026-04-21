@@ -18,11 +18,14 @@ from flask import Flask, request, jsonify
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from shared.base_agent import (
-    create_chat_client, get_s3_bucket, get_deployment_name,
-    ServiceResponseException
-)
+from shared.base_agent import get_s3_bucket
+from shared.llm_provider import get_provider
 from shared.s3_helpers import upload_json_to_s3
+
+try:
+    from agent_framework.exceptions import ServiceResponseException
+except ImportError:
+    ServiceResponseException = Exception
 
 from agents.threat_model.tools.data_loader import load_scanner_results, load_inventory_results
 from agents.threat_model.tools.vuln_correlator import correlate_vulnerabilities_with_architecture
@@ -114,9 +117,9 @@ async def run_threat_model_workflow(
     print(f"Inventory Results: {inventory_s3_location}")
     print("=" * 80)
 
-    chat_client = create_chat_client()
+    provider = get_provider()
 
-    agent = chat_client.create_agent(
+    agent = provider.create_agent(
         instructions=f"""You are a threat modeling expert. Your job is to create a comprehensive
 threat model by combining REAL security scan results with REAL application architecture.
 
@@ -175,7 +178,7 @@ Do NOT generate generic threats disconnected from actual scan data.""",
     except ServiceResponseException as exc:
         if "DeploymentNotFound" in str(exc):
             raise RuntimeError(
-                f"Azure OpenAI deployment '{get_deployment_name()}' not found."
+                f"Azure OpenAI deployment not found: {exc}"
             ) from exc
         raise
 

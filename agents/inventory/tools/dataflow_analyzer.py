@@ -10,7 +10,7 @@ from typing import Annotated
 from pydantic import Field
 
 
-def analyze_data_flows(
+async def analyze_data_flows(
     folder_path: Annotated[str, Field(description="Path to the codebase")],
     architecture_json: Annotated[str, Field(description="JSON string of architecture model from analyze_architecture")]
 ) -> str:
@@ -40,9 +40,8 @@ def analyze_data_flows(
     for filepath, content in data_files.items():
         context += f"--- {filepath} ---\n{content[:2000]}\n\n"
 
-    from shared.base_agent import get_openai_client, get_deployment_name
-    openai_client = get_openai_client()
-    deployment = get_deployment_name()
+    from shared.llm_provider import get_provider
+    provider = get_provider()
 
     prompt = f"""Analyze the architecture and source code to generate a Data Flow Diagram (DFD).
 
@@ -84,17 +83,13 @@ Generate a comprehensive DFD as JSON with:
 Return ONLY valid JSON."""
 
     try:
-        response = openai_client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": "You are a security architect creating Data Flow Diagrams for threat modeling. Return only valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
+        dfd = await provider.structured_output(
+            schema={"type": "object"},
+            prompt=prompt,
+            system="You are a security architect creating Data Flow Diagrams for threat modeling. Return only valid JSON.",
             temperature=0.2,
-            response_format={"type": "json_object"}
+            max_tokens=4096,
         )
-
-        dfd = json.loads(response.choices[0].message.content)
 
         flows_count = len(dfd.get('flows', []))
         boundaries_count = len(dfd.get('trust_boundaries', []))

@@ -10,7 +10,7 @@ from typing import Annotated
 from pydantic import Field
 
 
-def analyze_architecture(
+async def analyze_architecture(
     folder_path: Annotated[str, Field(description="Path to the codebase to analyze architecture")]
 ) -> str:
     """
@@ -45,9 +45,8 @@ def analyze_architecture(
     for filepath, content in file_contents.items():
         context += f"--- {filepath} ---\n{content[:3000]}\n\n"
 
-    from shared.base_agent import get_openai_client, get_deployment_name
-    openai_client = get_openai_client()
-    deployment = get_deployment_name()
+    from shared.llm_provider import get_provider
+    provider = get_provider()
 
     prompt = f"""Analyze the following codebase files and extract the application architecture.
 
@@ -77,17 +76,13 @@ Identify and return JSON with:
 Return ONLY valid JSON."""
 
     try:
-        response = openai_client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": "You are a software architect analyzing codebases to extract architecture models. Return only valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
+        architecture = await provider.structured_output(
+            schema={"type": "object"},
+            prompt=prompt,
+            system="You are a software architect analyzing codebases to extract architecture models. Return only valid JSON.",
             temperature=0.2,
-            response_format={"type": "json_object"}
+            max_tokens=4096,
         )
-
-        architecture = json.loads(response.choices[0].message.content)
         components_count = len(architecture.get('components', []))
         print(f"[Architecture] Discovered {components_count} components, type: {architecture.get('type', 'unknown')}")
 

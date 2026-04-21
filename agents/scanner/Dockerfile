@@ -24,6 +24,10 @@ COPY agents/scanner/ /app/agents/scanner/
 COPY agents/scanner/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-pull the local embeddings model so the deduplicator doesn't pay the
+# ~80MB download cost on its first run in a fresh container.
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
+
 # Create scan directory
 RUN mkdir -p /scan
 

@@ -23,11 +23,13 @@ from flask import Flask, request, jsonify
 # Add project root to path for shared imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from shared.base_agent import (
-    create_chat_client, get_scan_folder, get_s3_bucket,
-    get_azure_endpoint, get_deployment_name, get_azure_api_key,
-    ServiceResponseException
-)
+from shared.base_agent import get_scan_folder, get_s3_bucket
+from shared.llm_provider import get_provider
+
+try:
+    from agent_framework.exceptions import ServiceResponseException
+except ImportError:
+    ServiceResponseException = Exception
 
 # Import scan tools
 from agents.scanner.tools.checkov import scan_with_checkov
@@ -98,9 +100,9 @@ async def run_scanner_workflow(folder_path: str = None, s3_bucket: str = None):
     print(f"S3 Bucket: {s3_bucket}")
     print("=" * 80)
 
-    chat_client = create_chat_client()
+    provider = get_provider()
 
-    agent = chat_client.create_agent(
+    agent = provider.create_agent(
         instructions=f"""You are a security scanning orchestrator with MITRE ATT&CK threat intelligence.
 Follow this EXACT workflow:
 
@@ -167,7 +169,7 @@ IMPORTANT:
         message = str(exc)
         if "DeploymentNotFound" in message:
             raise RuntimeError(
-                f"Azure OpenAI deployment '{get_deployment_name()}' not found. "
+                "Azure OpenAI deployment not found. "
                 "Verify AZURE_OPENAI_CHAT_DEPLOYMENT_NAME is set correctly."
             ) from exc
         raise

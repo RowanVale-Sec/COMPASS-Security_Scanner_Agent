@@ -21,11 +21,39 @@ from flask import Flask, request as flask_request, jsonify
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from shared.base_agent import (
-    create_chat_client, get_scan_folder, get_s3_bucket,
-    get_openai_client, get_deployment_name, ServiceResponseException
-)
+from shared.base_agent import get_scan_folder, get_s3_bucket
+from shared.llm_provider import get_provider
 from shared.s3_helpers import upload_json_to_s3, download_json_from_s3
+
+try:
+    from agent_framework.exceptions import ServiceResponseException
+except ImportError:
+    ServiceResponseException = Exception
+
+
+EXECUTIVE_SUMMARY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "executive_summary": {
+            "type": "string",
+            "description": "2-3 paragraph summary for leadership",
+        },
+        "key_metrics": {
+            "type": "object",
+            "description": "Key metrics synthesized from the pipeline outputs",
+        },
+        "top_3_actions": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "The top three recommended actions",
+        },
+        "risk_posture": {
+            "type": "string",
+            "description": "Overall risk posture assessment",
+        },
+    },
+    "required": ["executive_summary", "key_metrics", "top_3_actions", "risk_posture"],
+}
 
 
 # Agent endpoint URLs (configurable via environment)
@@ -176,7 +204,7 @@ def run_threat_model_agent(
         return f"Error invoking Threat Model Agent: {str(e)}"
 
 
-def generate_executive_summary(
+async def generate_executive_summary(
     scanner_s3_location: Annotated[str, Field(description="S3 location of Scanner results")],
     inventory_s3_location: Annotated[str, Field(description="S3 location of Inventory results")],
     threat_model_s3_location: Annotated[str, Field(description="S3 location of Threat Model results")]
@@ -206,8 +234,7 @@ def generate_executive_summary(
     except Exception as e:
         threat_model_data = {"error": str(e)}
 
-    openai_client = get_openai_client()
-    deployment = get_deployment_name()
+    provider = get_provider()
 
     # Extract key metrics for summary
     scanner_meta = scanner_data.get('metadata', {})
@@ -250,17 +277,12 @@ Generate JSON with:
 Return ONLY valid JSON."""
 
     try:
-        response = openai_client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": "You are a CISO creating executive security summaries. Return only valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
+        summary_content = await provider.structured_output(
+            schema=EXECUTIVE_SUMMARY_SCHEMA,
+            prompt=prompt,
+            system="You are a CISO creating executive security summaries. Return only valid JSON.",
             temperature=0.3,
-            response_format={"type": "json_object"}
         )
-
-        summary_content = json.loads(response.choices[0].message.content)
     except Exception as e:
         summary_content = {"executive_summary": f"Summary generation failed: {e}"}
 
@@ -301,9 +323,9 @@ async def run_orchestrator_workflow(folder_path: str = None):
     print(f"Threat Model: {THREAT_MODEL_URL}")
     print("=" * 80)
 
-    chat_client = create_chat_client()
+    provider = get_provider()
 
-    agent = chat_client.create_agent(
+    agent = provider.create_agent(
         instructions=f"""You are the COMPASS pipeline orchestrator. Coordinate three agents
 in sequence to perform a complete security analysis.
 
@@ -351,7 +373,7 @@ IMPORTANT:
     except ServiceResponseException as exc:
         if "DeploymentNotFound" in str(exc):
             raise RuntimeError(
-                f"Azure OpenAI deployment '{get_deployment_name()}' not found."
+                f"Azure OpenAI deployment not found: {exc}"
             ) from exc
         raise
 

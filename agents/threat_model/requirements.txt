@@ -7,10 +7,16 @@ agent-framework-azure-ai==1.0.0b251016
 azure-ai-agents==1.2.0b5
 azure-ai-projects==1.1.0b4
 
-# OpenAI and Azure Integration
+# OpenAI and Azure Integration (used when LLM_PROVIDER=azure)
 openai>=1.109.0
 azure-identity>=1.25.0
 azure-core>=1.36.0
+
+# Anthropic Claude (used when LLM_PROVIDER=claude)
+anthropic>=0.40.0
+
+# JSON Schema validation for structured LLM outputs
+jsonschema>=4.0
 
 # AWS S3
 boto3>=1.35.49

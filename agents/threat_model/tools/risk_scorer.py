@@ -7,10 +7,10 @@ import json
 from typing import Annotated
 from pydantic import Field
 
-from shared.base_agent import get_openai_client, get_deployment_name
+from shared.llm_provider import get_provider
 
 
-def score_and_prioritize_risks(
+async def score_and_prioritize_risks(
     stride_json: Annotated[str, Field(description="JSON string of STRIDE analysis from perform_stride_analysis")],
     correlations_json: Annotated[str, Field(description="JSON string of vulnerability correlations")],
     scenarios_json: Annotated[str, Field(description="JSON string of attack scenarios")]
@@ -45,8 +45,7 @@ def score_and_prioritize_risks(
     except json.JSONDecodeError:
         scenarios = {"scenarios": []}
 
-    openai_client = get_openai_client()
-    deployment = get_deployment_name()
+    provider = get_provider()
 
     threats = stride.get('threats', [])
     corr_list = correlations.get('correlations', [])
@@ -131,17 +130,13 @@ Generate a risk analysis with:
 Return ONLY valid JSON. Be specific - reference actual threat IDs and finding IDs."""
 
     try:
-        response = openai_client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": "You are a CISO prioritizing security risks. Return only valid JSON."},
-                {"role": "user", "content": prompt}
-            ],
+        risk = await provider.structured_output(
+            schema={"type": "object"},
+            prompt=prompt,
+            system="You are a CISO prioritizing security risks. Return only valid JSON.",
             temperature=0.3,
-            response_format={"type": "json_object"}
+            max_tokens=4096,
         )
-
-        risk = json.loads(response.choices[0].message.content)
 
         score = risk.get('overall_risk_score', 0)
         priorities = len(risk.get('critical_priorities', []))
