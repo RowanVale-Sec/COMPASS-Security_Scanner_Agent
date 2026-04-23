@@ -2,6 +2,8 @@
 
 **COMPASS** (Cloud Operations Management Platform for Application Security Systems) is a modular, multi-agent security pipeline that scans a codebase, builds an inventory of assets, and produces a risk-focused threat model — all orchestrated via containerized microservices.
 
+**Elevator Pitch:** COMPASS reads your GitHub repo like a threat modeler would — inferring components, data flows, and trust boundaries from the code itself, then mapping each security finding to the real component it affects and synthesizing STRIDE attack scenarios and MITRE ATT&CK–mapped risk priorities into one CISO-ready report, in minutes.
+
 ---
 
 ## 🧩 What This Repository Contains
