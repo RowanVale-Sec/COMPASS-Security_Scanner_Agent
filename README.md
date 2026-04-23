@@ -1,4 +1,4 @@
-﻿# COMPASS — Multi-Agent Security Pipeline
+﻿# COMPASS — Threat Modeling Agent Pipeline
 
 **COMPASS** (Cloud Operations Management Platform for Application Security Systems) is a modular, multi-agent security pipeline that scans a codebase, builds an inventory of assets, and produces a risk-focused threat model — all orchestrated via containerized microservices.
 
