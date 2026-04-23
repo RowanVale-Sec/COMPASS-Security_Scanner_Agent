@@ -26,7 +26,7 @@ from pydantic import Field
 
 from shared.llm_provider import get_provider
 from shared.mcp_utils import mcp_session, call_tool_json
-from shared.s3_helpers import download_json_from_s3, upload_json_to_s3
+from shared.local_store import load_json, save_json
 
 
 MITRE_SCHEMA: Dict[str, Any] = {
@@ -208,7 +208,7 @@ def _build_prompt(finding_id: str, finding: Dict[str, Any], candidates: List[Dic
 
 
 async def analyze_findings_with_mitre(
-    s3_location: Annotated[str, Field(description="S3 location (s3://bucket/key) of deduplicated findings")],
+    findings_path: Annotated[str, Field(description="Local file path of deduplicated findings")],
 ) -> str:
     """
     Analyze security findings by mapping each to a MITRE ATT&CK technique.
@@ -221,12 +221,12 @@ async def analyze_findings_with_mitre(
     tend to hallucinate plausible-looking URLs when they see an optional arg.
     """
     mitre_mcp_url = os.environ.get("MITRE_MCP_URL", "http://mitre-mcp:8000/mcp")
-    print(f"[MITRE] Starting analysis for findings from {s3_location}")
+    print(f"[MITRE] Starting analysis for findings from {findings_path}")
 
     try:
-        findings_data = download_json_from_s3(s3_location)
+        findings_data = load_json(findings_path)
     except Exception as e:
-        return f"Error downloading findings from S3: {e}"
+        return f"Error loading findings: {e}"
 
     findings: List[Dict[str, Any]] = findings_data.get("findings", [])
     total_findings = len(findings)
@@ -297,7 +297,7 @@ async def analyze_findings_with_mitre(
             "analysis_date": datetime.utcnow().isoformat(),
             "total_findings": total_findings,
             "mitre_mcp_url": mitre_mcp_url,
-            "source_file": s3_location,
+            "source_file": findings_path,
             "tool_distribution": dict(tool_counts),
             "technique_cache_size": len(technique_cache),
         }
@@ -305,8 +305,8 @@ async def analyze_findings_with_mitre(
     for r in results:
         mitre_mapped.update(r)
 
-    s3_loc = upload_json_to_s3(mitre_mapped, "mitre-mapped-findings")
+    out_path = save_json(mitre_mapped, "mitre-mapped-findings")
     mapped = sum(1 for r in results if not any("ERR" in k for k in r.keys()))
     errors = total_findings - mapped
-    print(f"[MITRE] Complete: {mapped} mapped, {errors} errors. Uploaded to {s3_loc}")
-    return s3_loc
+    print(f"[MITRE] Complete: {mapped} mapped, {errors} errors. Wrote {out_path}")
+    return out_path

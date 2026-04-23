@@ -1,14 +1,14 @@
 """
 COMPASS Base Agent - Shared env/config helpers.
 
-Historically this module also exported LLM client factory helpers; those have
-moved to `shared.llm_provider` behind a provider-agnostic interface. The Azure
-env readers below remain because `agents/scanner/pipeline/mitre_mapper.py`
-still uses `AzureOpenAIChatClient` directly for MCP tool invocation.
+Historically this module also exported LLM client factory helpers and S3
+helpers. LLM client creation moved to `shared.llm_provider`; intermediate
+storage moved to `shared.local_store`. The Azure env readers below remain
+because `agents/scanner/pipeline/mitre_mapper.py` still uses
+`AzureOpenAIChatClient` directly for MCP tool invocation.
 """
 
 import os
-import boto3
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -38,33 +38,6 @@ def get_deployment_name() -> str:
     return name
 
 
-def get_s3_client():
-    """Get boto3 S3 client using environment credentials."""
-    aws_access_key = os.environ.get('AWS_ACCESS_KEY_ID')
-    aws_secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    aws_region = os.environ.get('AWS_REGION', 'us-east-1')
-
-    if not aws_access_key or not aws_secret_key:
-        raise ValueError("AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required")
-
-    return boto3.client(
-        's3',
-        aws_access_key_id=aws_access_key,
-        aws_secret_access_key=aws_secret_key,
-        region_name=aws_region
-    )
-
-
-def get_s3_bucket() -> str:
-    """Get S3 bucket name."""
-    bucket = os.environ.get('S3_BUCKET')
-    if not bucket:
-        raise ValueError("S3_BUCKET environment variable is required")
-    return bucket
-
-
 def get_scan_folder() -> str:
     """Get scan folder path."""
     return os.environ.get('SCAN_FOLDER_PATH', '/scan')
-
-

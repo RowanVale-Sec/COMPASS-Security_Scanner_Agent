@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(docker run:*)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/mcp)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/mcp)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

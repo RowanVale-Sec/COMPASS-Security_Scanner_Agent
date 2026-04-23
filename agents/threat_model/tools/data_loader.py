@@ -1,34 +1,34 @@
 """
 Threat Model Tool - Data Loader
-Loads Scanner Agent and Inventory Agent outputs from S3 for threat analysis.
+Loads Scanner Agent and Inventory Agent outputs from local files materialized
+from HTTP request bodies.
 """
 
 import json
 from typing import Annotated
 from pydantic import Field
 
-from shared.s3_helpers import download_json_from_s3
+from shared.local_store import load_json
 
 
 def load_scanner_results(
-    s3_location: Annotated[str, Field(description="S3 location of Scanner Agent MITRE-mapped results")]
+    findings_path: Annotated[str, Field(description="Local file path of scanner MITRE-mapped results")]
 ) -> str:
     """
-    Download and parse Scanner Agent results from S3.
+    Load Scanner Agent results from a local file path.
 
     Loads the MITRE-mapped, deduplicated security findings including:
     - Vulnerability findings with severity and MITRE ATT&CK mapping
     - Scan types: IaC, SAST, SCA, Secrets, Container
     - Tool distribution and finding counts
 
-    Returns: JSON string of scanner results.
+    Returns: JSON string of scanner results (flattened findings list).
     """
-    print(f"[Loader] Loading scanner results from {s3_location}")
+    print(f"[Loader] Loading scanner results from {findings_path}")
 
     try:
-        data = download_json_from_s3(s3_location)
+        data = load_json(findings_path)
 
-        # Extract key metrics
         findings = []
         for key, value in data.items():
             if key.startswith('FND-') and isinstance(value, dict):
@@ -42,7 +42,7 @@ def load_scanner_results(
         total = metadata.get('total_findings', len(findings))
 
         result = {
-            "source": s3_location,
+            "source": findings_path,
             "total_findings": total,
             "tool_distribution": metadata.get('tool_distribution', {}),
             "findings": findings
@@ -57,10 +57,10 @@ def load_scanner_results(
 
 
 def load_inventory_results(
-    s3_location: Annotated[str, Field(description="S3 location of Inventory Agent results")]
+    inventory_path: Annotated[str, Field(description="Local file path of inventory JSON")]
 ) -> str:
     """
-    Download and parse Inventory Agent results from S3.
+    Load Inventory Agent results from a local file path.
 
     Loads the complete inventory including:
     - SBOM with package details, PURL, CPE, and vulnerability mapping
@@ -70,10 +70,10 @@ def load_inventory_results(
 
     Returns: JSON string of inventory results.
     """
-    print(f"[Loader] Loading inventory results from {s3_location}")
+    print(f"[Loader] Loading inventory results from {inventory_path}")
 
     try:
-        data = download_json_from_s3(s3_location)
+        data = load_json(inventory_path)
 
         sbom = data.get('sbom', {})
         arch = data.get('architecture', {})

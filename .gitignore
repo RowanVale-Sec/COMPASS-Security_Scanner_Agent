@@ -6,10 +6,20 @@
 # Dependencies
 node_modules/
 venv/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Frontend build
+frontend/dist/
+frontend/node_modules/
+frontend/.vite/
+
+# API gateway local venv + compiled
+api_gateway/.venv/
+api_gateway/__pycache__/
 
 # IDE files
 .vscode/

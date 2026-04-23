@@ -1,7 +1,8 @@
 """
 Scanner Pipeline - Deduplicator
-Downloads findings from S3, uses embeddings to find semantically similar findings,
-and validates clusters via AI agents before merging duplicates.
+Loads aggregated findings from the local run store, uses embeddings to find
+semantically similar findings, and validates clusters via AI agents before
+merging duplicates.
 """
 
 import os
@@ -12,36 +13,37 @@ from typing import Annotated
 from pydantic import Field
 
 from shared.llm_provider import get_embeddings_provider, get_provider
-from shared.s3_helpers import download_json_from_s3, upload_json_to_s3
+from shared.local_store import load_json, save_json
 
 
-async def deduplicate_findings_from_s3(
-    s3_location: Annotated[str, Field(description="S3 location (s3://bucket/key) of findings to deduplicate")]
+async def deduplicate_findings(
+    findings_path: Annotated[str, Field(description="Local file path of aggregated findings to deduplicate")]
 ) -> str:
     """
-    Download findings from S3, deduplicate using embeddings, and re-upload.
+    Load findings from the local run store, deduplicate using embeddings, and
+    write the deduplicated result back to the store.
 
     Pipeline:
-    1. Download findings from S3
+    1. Load findings from the local run store
     2. Generate embeddings for semantic similarity
     3. Cluster similar findings (cosine similarity >= 0.85)
     4. Validate each cluster via AI agent
-    5. Upload deduplicated results to S3
+    5. Write deduplicated results and return their local file path
     """
-    print(f"[Dedup] Downloading findings from {s3_location}")
+    print(f"[Dedup] Loading findings from {findings_path}")
 
     try:
-        findings_data = download_json_from_s3(s3_location)
+        findings_data = load_json(findings_path)
     except Exception as e:
-        return f"Error downloading from S3: {e}"
+        return f"Error loading findings: {e}"
 
     original_findings = findings_data.get('findings', [])
     original_count = len(original_findings)
 
-    print(f"[Dedup] Downloaded {original_count} findings")
+    print(f"[Dedup] Loaded {original_count} findings")
 
     if original_count == 0:
-        return f"Error: No findings found in {s3_location}"
+        return f"Error: No findings found in {findings_path}"
 
     try:
         import numpy as np
@@ -199,9 +201,9 @@ async def deduplicate_findings_from_s3(
             'findings': unique_findings
         }
 
-        s3_location = upload_json_to_s3(deduplicated_data, "scan-results", filename_suffix="-deduplicated")
-        print(f"[Dedup] Uploaded deduplicated results to {s3_location}")
-        return s3_location
+        out_path = save_json(deduplicated_data, "scan-results", filename_suffix="-deduplicated")
+        print(f"[Dedup] Wrote deduplicated results to {out_path}")
+        return out_path
 
     except Exception as e:
         import traceback

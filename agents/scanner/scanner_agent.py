@@ -6,15 +6,14 @@ Enhanced multi-tool security scanning with AI deduplication and MITRE ATT&CK map
 Scan types: IaC (Checkov, Trivy), SAST (Bandit, Semgrep), SCA (Trivy),
             Secrets (Trivy), Container Image (Trivy)
 
-Pipeline: Scan -> Aggregate -> Deduplicate -> MITRE Map -> S3
+Pipeline: Scan -> Aggregate -> Deduplicate -> MITRE Map -> return JSON inline.
 """
 
 import os
 import re as _re
 import sys
-import json
 import asyncio
-import threading
+import traceback
 from pathlib import Path as _Path
 from typing import Annotated
 from pydantic import Field
@@ -23,8 +22,9 @@ from flask import Flask, request, jsonify
 # Add project root to path for shared imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from shared.base_agent import get_scan_folder, get_s3_bucket
-from shared.llm_provider import get_provider
+from shared.base_agent import get_scan_folder
+from shared.llm_provider import ProviderCredentials, get_provider, use_credentials
+from shared.local_store import load_json, run_scope
 
 try:
     from agent_framework.exceptions import ServiceResponseException
@@ -42,7 +42,7 @@ from agents.scanner.tools.trivy_image import scan_container_image_with_trivy
 
 # Import pipeline stages
 from agents.scanner.pipeline.aggregator import aggregate_scan_results
-from agents.scanner.pipeline.deduplicator import deduplicate_findings_from_s3
+from agents.scanner.pipeline.deduplicator import deduplicate_findings
 from agents.scanner.pipeline.mitre_mapper import analyze_findings_with_mitre
 
 
@@ -88,16 +88,27 @@ def find_docker_base_images(
 # Agent Setup
 # ============================================================================
 
-async def run_scanner_workflow(folder_path: str = None, s3_bucket: str = None):
-    """Execute the complete security scanning workflow."""
-    folder_path = folder_path or get_scan_folder()
-    s3_bucket = s3_bucket or get_s3_bucket()
+_PATH_RE = _re.compile(r"(?:[A-Za-z]:[\\/]|/)[^\s'\"<>|]+mitre-mapped-findings[^\s'\"<>|]+\.json")
 
+
+def _extract_final_path(agent_output: str) -> str:
+    """Pull the mitre-mapped JSON path out of the agent's free-form final message."""
+    match = _PATH_RE.search(agent_output or "")
+    if not match:
+        raise RuntimeError(
+            "Agent finished without reporting a mitre-mapped findings path"
+        )
+    return match.group(0).rstrip('.,`*|')
+
+
+async def run_scanner_workflow(folder_path: str) -> dict:
+    """Execute the complete security scanning workflow and return the MITRE-mapped
+    findings as a dict. Caller is responsible for `use_credentials` and `run_scope`.
+    """
     print("=" * 80)
     print("COMPASS SECURITY SCANNER AGENT")
     print("=" * 80)
     print(f"Target Folder: {folder_path}")
-    print(f"S3 Bucket: {s3_bucket}")
     print("=" * 80)
 
     provider = get_provider()
@@ -125,18 +136,19 @@ Each tool saves findings to a file and returns metadata with tool name, findings
 STEP 2: AGGREGATE & CONSOLIDATE
 Collect all scan results into a JSON array and call aggregate_scan_results.
 Pass the results as a JSON string array of the metadata dicts from all tools that produced findings.
-This will load findings, normalize each via LLM, and upload to S3.
+This will load findings, normalize each via LLM, and write the aggregated JSON to a local file.
 
 STEP 3: DEDUPLICATE
 Remove duplicate findings using semantic embeddings:
-- deduplicated_location = deduplicate_findings_from_s3(s3_location)
+- deduplicated_path = deduplicate_findings(aggregated_path)
 
 STEP 4: MITRE ATT&CK THREAT INTELLIGENCE
 Analyze findings with MITRE ATT&CK framework:
-- mitre_location = analyze_findings_with_mitre(deduplicated_location)
+- mitre_path = analyze_findings_with_mitre(deduplicated_path)
 
 STEP 5: REPORT
-Report the final S3 locations for all pipeline stages.
+Report the final local file path to the MITRE-mapped findings. The path will
+contain 'mitre-mapped-findings' — include it verbatim in your final message.
 
 IMPORTANT:
 - Run ALL scan tools first, then aggregate ALL results together.
@@ -152,7 +164,7 @@ IMPORTANT:
             find_docker_base_images,
             scan_container_image_with_trivy,
             aggregate_scan_results,
-            deduplicate_findings_from_s3,
+            deduplicate_findings,
             analyze_findings_with_mitre
         ]
     )
@@ -163,7 +175,7 @@ IMPORTANT:
         result = await agent.run(
             f"Scan {folder_path} for security issues. Run all available scan tools, "
             f"aggregate results, deduplicate, and map to MITRE ATT&CK. "
-            f"Upload all results to S3 bucket {s3_bucket}."
+            f"Report the local file path of the final MITRE-mapped findings."
         )
     except ServiceResponseException as exc:
         message = str(exc)
@@ -180,7 +192,8 @@ IMPORTANT:
     print(result.text)
     print("=" * 80)
 
-    return result.text
+    final_path = _extract_final_path(result.text)
+    return load_json(final_path)
 
 
 # ============================================================================
@@ -197,23 +210,47 @@ def health():
 
 @app.route('/run', methods=['POST'])
 def run():
-    """Run the scanner agent. Accepts optional folder_path and s3_bucket in request body."""
+    """Run the scanner agent.
+
+    Request body:
+      {
+        "folder_path": "/workspace/<job_id>",  # optional, defaults to SCAN_FOLDER_PATH
+        "credentials": { "provider": "...", "api_key": "...", ... }  # optional
+      }
+
+    Response body on success:
+      {
+        "status": "success",
+        "agent": "security_scanner",
+        "scanner_findings": { ... MITRE-mapped findings JSON ... }
+      }
+    """
     data = request.json or {}
-    folder_path = data.get('folder_path', get_scan_folder())
-    s3_bucket = data.get('s3_bucket', get_s3_bucket())
+    folder_path = data.get('folder_path') or get_scan_folder()
+    creds_data = data.get('credentials')
 
     try:
-        result = asyncio.run(run_scanner_workflow(folder_path, s3_bucket))
+        creds = ProviderCredentials.from_dict(creds_data) if creds_data else None
+    except ValueError as e:
+        return jsonify({"status": "error", "agent": "security_scanner", "error": str(e)}), 400
+
+    print(f"[Scanner] /run creds_provider={creds.provider if creds else 'NONE'} folder={folder_path}", flush=True)
+    try:
+        with run_scope():
+            with use_credentials(creds):
+                findings = asyncio.run(run_scanner_workflow(folder_path))
         return jsonify({
             "status": "success",
             "agent": "security_scanner",
-            "result": result
+            "scanner_findings": findings,
         })
     except Exception as e:
+        print("[Scanner] /run failed:", file=sys.stderr, flush=True)
+        traceback.print_exc()
         return jsonify({
             "status": "error",
             "agent": "security_scanner",
-            "error": str(e)
+            "error": f"{type(e).__name__}: {e}",
         }), 500
 
 
@@ -229,4 +266,5 @@ if __name__ == "__main__":
         print(f"Starting Scanner Agent HTTP server on port {port}")
         app.run(host='0.0.0.0', port=port, debug=False)
     else:
-        asyncio.run(run_scanner_workflow())
+        with run_scope():
+            asyncio.run(run_scanner_workflow(get_scan_folder()))

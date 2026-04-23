@@ -1,0 +1,254 @@
+:root {
+  color-scheme: light dark;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --bg: #0b1220;
+  --panel: #141c2e;
+  --panel-alt: #1c2540;
+  --border: #2a3553;
+  --text: #e6ecff;
+  --muted: #8393b8;
+  --accent: #5b8cff;
+  --accent-hover: #7ea1ff;
+  --success: #3ecf8e;
+  --error: #ff6b6b;
+  --warn: #ffb347;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f7fb;
+    --panel: #ffffff;
+    --panel-alt: #eef2fa;
+    --border: #d5dcec;
+    --text: #1a2340;
+    --muted: #5a6480;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2.25rem;
+  letter-spacing: -0.02em;
+}
+
+header .tagline {
+  margin: 0.25rem 0 2rem;
+  color: var(--muted);
+}
+
+form fieldset,
+.provider-fieldset {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  background: var(--panel);
+  margin: 0;
+}
+
+.provider-fieldset {
+  margin-bottom: 1rem;
+  background: var(--panel-alt);
+}
+
+.provider-fieldset legend {
+  padding: 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+form input,
+form select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+form input:focus,
+form select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.radio {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  color: var(--text);
+}
+
+.radio input {
+  width: auto;
+}
+
+.muted {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.field-error {
+  color: var(--error);
+  font-size: 0.85rem;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 0.5rem;
+  transition: background 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+button:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.progress h2 {
+  margin-top: 0;
+}
+
+ol.stages {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.stage-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.stage-started .stage-indicator {
+  background: var(--warn);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.stage-completed .stage-indicator {
+  background: var(--success);
+}
+
+.stage-failed .stage-indicator {
+  background: var(--error);
+}
+
+.stage-status {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.error {
+  color: var(--error);
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+
+.download-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--success);
+  border-radius: 8px;
+  background: rgba(62, 207, 142, 0.08);
+  margin-bottom: 1rem;
+}
+
+.download-area p {
+  margin: 0;
+  color: var(--success);
+  font-weight: 600;
+}
+
+.download-button {
+  display: inline-block;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  background: var(--success);
+  color: #03271a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+footer {
+  margin-top: 2.5rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.85); }
+}
