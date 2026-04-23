@@ -13,11 +13,18 @@ from __future__ import annotations
 
 import os
 from abc import ABC, abstractmethod
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Literal, Optional, Sequence
+from typing import Any, Callable, Dict, Iterator, List, Literal, Optional, Sequence
 
 
 ProviderName = Literal["azure", "claude"]
+
+
+_current_credentials: ContextVar[Optional["ProviderCredentials"]] = ContextVar(
+    "compass_current_credentials", default=None
+)
 
 
 @dataclass(frozen=True)
@@ -98,6 +105,79 @@ class ProviderCredentials:
 
         raise ValueError(f"Unknown LLM_PROVIDER: {provider!r} (expected 'azure' or 'claude')")
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "ProviderCredentials":
+        """Build credentials from a request-body dict.
+
+        Expected shape:
+          {"provider": "azure", "api_key": "...", "endpoint": "...", "deployment": "...",
+           "api_version": "...", "embedding_deployment": "..."}
+          {"provider": "claude", "api_key": "...", "model": "...", "max_tokens": 4096}
+
+        Raises ValueError with a *non-sensitive* message on shape errors. Never
+        echoes the caller's key back into the exception.
+        """
+        if not isinstance(data, dict):
+            raise ValueError("credentials must be an object")
+
+        provider = str(data.get("provider", "")).lower()
+        api_key = data.get("api_key")
+        if not isinstance(api_key, str) or not api_key:
+            raise ValueError("credentials.api_key is required")
+
+        if provider == "azure":
+            endpoint = data.get("endpoint")
+            deployment = data.get("deployment")
+            if not isinstance(endpoint, str) or not endpoint:
+                raise ValueError("credentials.endpoint is required for azure")
+            if not isinstance(deployment, str) or not deployment:
+                raise ValueError("credentials.deployment is required for azure")
+            return cls(
+                provider="azure",
+                api_key=api_key,
+                endpoint=endpoint,
+                deployment=deployment,
+                embedding_deployment=data.get("embedding_deployment"),
+                api_version=data.get("api_version", "2024-08-01-preview"),
+            )
+
+        if provider == "claude":
+            model = data.get("model") or "claude-sonnet-4-5"
+            try:
+                max_tokens = int(data.get("max_tokens", 4096))
+            except (TypeError, ValueError):
+                raise ValueError("credentials.max_tokens must be an integer")
+            return cls(
+                provider="claude",
+                api_key=api_key,
+                model=str(model),
+                max_tokens=max_tokens,
+            )
+
+        raise ValueError("credentials.provider must be 'azure' or 'claude'")
+
+
+@contextmanager
+def use_credentials(creds: Optional["ProviderCredentials"]) -> Iterator[None]:
+    """Scope the given credentials to the current task/thread.
+
+    While active, `get_provider()` (and any caller that reads the current
+    credentials) will prefer these over environment variables. Always use via
+    `with use_credentials(creds): ...` so the token scope is explicit and the
+    ContextVar is reset on exit — never leak request credentials into a
+    background task.
+    """
+    token = _current_credentials.set(creds)
+    try:
+        yield
+    finally:
+        _current_credentials.reset(token)
+
+
+def current_credentials() -> Optional["ProviderCredentials"]:
+    """Return the credentials scoped by `use_credentials`, or None."""
+    return _current_credentials.get()
+
 
 @dataclass
 class AgentRunResult:
@@ -172,8 +252,13 @@ class EmbeddingsProvider(ABC):
 def get_provider(creds: Optional[ProviderCredentials] = None) -> LLMProvider:
     """Factory. Returns the provider implementation matching `creds.provider`.
 
-    If `creds` is None, reads from environment.
+    Resolution order for `creds`:
+      1. explicit argument
+      2. contextvar set by `use_credentials` (per-request frontend tokens)
+      3. environment variables (`from_env`)
     """
+    if creds is None:
+        creds = _current_credentials.get()
     if creds is None:
         creds = ProviderCredentials.from_env()
 

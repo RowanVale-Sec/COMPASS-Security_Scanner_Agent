@@ -13,7 +13,7 @@ from pydantic import Field
 
 def generate_enhanced_sbom(
     folder_path: Annotated[str, Field(description="Path to the codebase to generate SBOM for")],
-    scanner_s3_location: Annotated[str, Field(description="Optional S3 location of Scanner Agent SCA results for vulnerability cross-referencing")] = ""
+    scanner_findings_path: Annotated[str, Field(description="Optional local file path of previously-materialized scanner findings JSON for vulnerability cross-referencing")] = ""
 ) -> str:
     """
     Generate an enhanced SBOM using the Syft MCP server.
@@ -56,11 +56,19 @@ def generate_enhanced_sbom(
 
     # Cross-reference with Scanner SCA results for vulnerability mapping
     known_vulns = {}
-    if scanner_s3_location:
+    if scanner_findings_path:
         try:
-            from shared.s3_helpers import download_json_from_s3
-            scanner_data = download_json_from_s3(scanner_s3_location)
-            for finding in scanner_data.get('findings', []):
+            from shared.local_store import load_json
+            scanner_data = load_json(scanner_findings_path)
+            # Scanner results can be either flat {findings: [...]} or MITRE-mapped
+            # {FND-*: {finding: {...}, mitre_analysis: {...}}} — handle both.
+            raw_findings = list(scanner_data.get('findings', []))
+            for key, value in scanner_data.items():
+                if key.startswith('FND-') and isinstance(value, dict):
+                    inner = value.get('finding') or {}
+                    if inner:
+                        raw_findings.append(inner)
+            for finding in raw_findings:
                 if finding.get('scan_type') == 'SCA' or finding.get('tool_name', '').startswith('trivy-sca'):
                     pkg_name = finding.get('resource_name', '')
                     if pkg_name:

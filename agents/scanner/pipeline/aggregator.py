@@ -1,7 +1,7 @@
 """
 Scanner Pipeline - Aggregator
 Loads raw findings from all scan tools, normalizes each finding via LLM,
-and uploads consolidated results to S3.
+and writes the consolidated result to the local run store.
 """
 
 import os
@@ -11,7 +11,7 @@ from typing import Annotated
 from pydantic import Field
 
 from shared.llm_provider import LLMProvider, get_provider
-from shared.s3_helpers import upload_json_to_s3
+from shared.local_store import save_json
 
 
 FINDING_SCHEMA = {
@@ -51,8 +51,8 @@ async def aggregate_scan_results(
 
     Accepts a variable number of tool results (not limited to 4).
     For each raw finding, calls the configured LLM provider to extract 9
-    standardized fields. Uploads consolidated results to S3 and returns the
-    S3 location.
+    standardized fields. Writes the consolidated result to the run's local
+    store and returns its absolute file path.
     """
     print("[Aggregation] Loading findings from all tools...")
 
@@ -99,10 +99,10 @@ async def aggregate_scan_results(
         'total_findings': len(consolidated),
         'findings': consolidated
     }
-    s3_location = upload_json_to_s3(data, "scan-results")
+    path = save_json(data, "scan-results")
 
-    print(f"[Aggregation] Uploaded to {s3_location}")
-    return s3_location
+    print(f"[Aggregation] Wrote aggregated findings to {path}")
+    return path
 
 
 async def _extract_fields(provider: LLMProvider, tool_name: str, raw_finding: dict) -> dict:

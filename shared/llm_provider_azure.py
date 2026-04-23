@@ -48,10 +48,14 @@ class AzureProvider(LLMProvider):
     def _get_chat_client(self):
         if self._chat_client is None:
             from agent_framework.azure import AzureOpenAIChatClient
+            # AzureOpenAIChatClient takes `deployment_name`, NOT `model`. If
+            # `model` is passed it goes into **kwargs and is silently dropped,
+            # and the library then complains that the deployment is missing.
             self._chat_client = AzureOpenAIChatClient(
                 endpoint=self._creds.endpoint,
                 api_key=self._creds.api_key,
-                model=self._creds.deployment,
+                deployment_name=self._creds.deployment,
+                api_version=self._creds.api_version or "2024-08-01-preview",
             )
         return self._chat_client
 

@@ -7,25 +7,20 @@ threat model with attack scenarios, STRIDE analysis, and risk prioritization.
 All threat analysis is grounded in REAL scan data and REAL architecture.
 """
 
+import inspect
+import json
 import os
 import sys
-import json
 import asyncio
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any, Dict
 from pydantic import Field
 from flask import Flask, request, jsonify
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from shared.base_agent import get_s3_bucket
-from shared.llm_provider import get_provider
-from shared.s3_helpers import upload_json_to_s3
-
-try:
-    from agent_framework.exceptions import ServiceResponseException
-except ImportError:
-    ServiceResponseException = Exception
+from shared.llm_provider import ProviderCredentials, use_credentials
+from shared.local_store import run_scope, save_input_payload
 
 from agents.threat_model.tools.data_loader import load_scanner_results, load_inventory_results
 from agents.threat_model.tools.vuln_correlator import correlate_vulnerabilities_with_architecture
@@ -34,23 +29,22 @@ from agents.threat_model.tools.stride_analyzer import perform_stride_analysis
 from agents.threat_model.tools.risk_scorer import score_and_prioritize_risks
 
 
-def upload_threat_model_to_s3(
-    scanner_s3_location: Annotated[str, Field(description="S3 location of the scanner agent results (s3://bucket/key)")],
-    inventory_s3_location: Annotated[str, Field(description="S3 location of the inventory agent results (s3://bucket/key)")],
+def assemble_threat_model(
+    scanner_source: Annotated[str, Field(description="Human-readable label for the scanner source (e.g. a local path or 'inline')")],
+    inventory_source: Annotated[str, Field(description="Human-readable label for the inventory source")],
     correlations_json: Annotated[str, Field(description="JSON string returned by correlate_vulnerabilities_with_architecture")],
     scenarios_json: Annotated[str, Field(description="JSON string returned by generate_attack_scenarios")],
     stride_json: Annotated[str, Field(description="JSON string returned by perform_stride_analysis")],
     risk_json: Annotated[str, Field(description="JSON string returned by score_and_prioritize_risks")]
 ) -> str:
     """
-    Consolidate threat model data and upload to S3.
+    Assemble the final threat model JSON and return it as a JSON string.
 
-    Combines all threat analysis components into a single structured output
-    following the COMPASS Threat Model schema.
-
-    Returns: S3 location of the uploaded threat model.
+    The agent's final message should include this exact JSON inside a
+    ```threat-model-json ... ``` fenced block so the calling process can extract
+    it without parsing prose.
     """
-    print("[Upload] Consolidating threat model for S3 upload")
+    print("[Assemble] Building consolidated threat model")
 
     def safe_parse(j):
         try:
@@ -68,8 +62,8 @@ def upload_threat_model_to_s3(
         "agent": "threat_model",
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "inputs": {
-            "scanner_s3_location": scanner_s3_location,
-            "inventory_s3_location": inventory_s3_location
+            "scanner_source": scanner_source,
+            "inventory_source": inventory_source,
         },
         "vulnerability_correlation": correlations.get('correlations', []),
         "correlation_summary": correlations.get('summary', {}),
@@ -99,96 +93,76 @@ def upload_threat_model_to_s3(
         }
     }
 
-    s3_location = upload_json_to_s3(threat_model, "threat-models")
-    print(f"[Upload] Threat model uploaded to {s3_location}")
-    return s3_location
+    return json.dumps(threat_model)
 
 
 async def run_threat_model_workflow(
-    scanner_s3_location: str,
-    inventory_s3_location: str
-):
-    """Execute the threat modeling workflow using Scanner + Inventory outputs."""
+    scanner_findings_path: str,
+    inventory_path: str,
+) -> Dict[str, Any]:
+    """Execute the threat modeling workflow deterministically.
 
+    Same shape as the inventory pipeline: each stage returns a JSON string
+    that the next stage consumes. Asking the LLM to chain these tool calls
+    failed because it will not echo a multi-kilobyte JSON blob back verbatim
+    (the symptom is an empty correlation summary + zero attack scenarios even
+    when the scanner produced hundreds of findings). The sequencing here has
+    no reasoning gain from the LLM, so we drive it in Python. LLM calls still
+    happen *inside* each tool (scenario generation, STRIDE analysis, risk
+    scoring) where they genuinely add value.
+    """
     print("=" * 80)
     print("COMPASS THREAT MODEL AGENT")
     print("=" * 80)
-    print(f"Scanner Results: {scanner_s3_location}")
-    print(f"Inventory Results: {inventory_s3_location}")
+    print(f"Scanner findings: {scanner_findings_path}")
+    print(f"Inventory: {inventory_path}")
     print("=" * 80)
 
-    provider = get_provider()
+    async def _await_if_needed(value):
+        return await value if inspect.iscoroutine(value) else value
 
-    agent = provider.create_agent(
-        instructions=f"""You are a threat modeling expert. Your job is to create a comprehensive
-threat model by combining REAL security scan results with REAL application architecture.
+    # 1. Load inputs (these return JSON strings consumed by later stages)
+    scanner_data_json = load_scanner_results(scanner_findings_path)
+    inventory_data_json = load_inventory_results(inventory_path)
 
-You have two data sources:
-1. Scanner Agent results at: {scanner_s3_location}
-2. Inventory Agent results at: {inventory_s3_location}
-
-Follow this EXACT workflow:
-
-STEP 1: LOAD DATA
-- scanner_data = load_scanner_results("{scanner_s3_location}")
-- inventory_data = load_inventory_results("{inventory_s3_location}")
-
-STEP 2: CORRELATE VULNERABILITIES WITH ARCHITECTURE
-- correlations = correlate_vulnerabilities_with_architecture(scanner_data, inventory_data)
-This maps each vulnerability to the architecture component it affects.
-
-STEP 3: GENERATE ATTACK SCENARIOS
-- scenarios = generate_attack_scenarios(correlations, inventory_data)
-Generate 5-10 realistic attack scenarios grounded in REAL findings and architecture.
-
-STEP 4: STRIDE ANALYSIS
-- stride = perform_stride_analysis(scenarios, correlations, inventory_data)
-Categorize all threats using STRIDE methodology.
-
-STEP 5: RISK SCORING
-- risk = score_and_prioritize_risks(stride, correlations, scenarios)
-Score overall risk, identify priorities and quick wins.
-
-STEP 6: UPLOAD TO S3
-- upload_threat_model_to_s3("{scanner_s3_location}", "{inventory_s3_location}",
-    correlations, scenarios, stride, risk)
-
-Report the final threat model S3 location and key metrics.
-
-CRITICAL: Every threat and scenario MUST reference real finding IDs and real components.
-Do NOT generate generic threats disconnected from actual scan data.""",
-        tools=[
-            load_scanner_results,
-            load_inventory_results,
-            correlate_vulnerabilities_with_architecture,
-            generate_attack_scenarios,
-            perform_stride_analysis,
-            score_and_prioritize_risks,
-            upload_threat_model_to_s3
-        ]
+    # 2. Correlate vulns with architecture
+    correlations_json = await _await_if_needed(
+        correlate_vulnerabilities_with_architecture(scanner_data_json, inventory_data_json)
     )
 
-    print("\nAgent generating threat model...\n")
+    # 3. Attack scenarios (needs correlations + inventory)
+    scenarios_json = await _await_if_needed(
+        generate_attack_scenarios(correlations_json, inventory_data_json)
+    )
 
-    try:
-        result = await agent.run(
-            f"Create a comprehensive threat model using scanner results from "
-            f"{scanner_s3_location} and inventory data from {inventory_s3_location}."
-        )
-    except ServiceResponseException as exc:
-        if "DeploymentNotFound" in str(exc):
-            raise RuntimeError(
-                f"Azure OpenAI deployment not found: {exc}"
-            ) from exc
-        raise
+    # 4. STRIDE categorization
+    stride_json = await _await_if_needed(
+        perform_stride_analysis(scenarios_json, correlations_json, inventory_data_json)
+    )
+
+    # 5. Risk scoring
+    risk_json = await _await_if_needed(
+        score_and_prioritize_risks(stride_json, correlations_json, scenarios_json)
+    )
+
+    # 6. Assemble
+    assembled_json = assemble_threat_model(
+        scanner_findings_path,
+        inventory_path,
+        correlations_json,
+        scenarios_json,
+        stride_json,
+        risk_json,
+    )
 
     print("\n" + "=" * 80)
     print("THREAT MODEL AGENT COMPLETED")
     print("=" * 80)
-    print(result.text)
-    print("=" * 80)
 
-    return result.text
+    try:
+        return json.loads(assembled_json)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"assemble_threat_model returned invalid JSON: {exc}") from exc
 
 
 # ============================================================================
@@ -205,22 +179,46 @@ def health():
 
 @app.route('/run', methods=['POST'])
 def run():
-    data = request.json or {}
-    scanner_loc = data.get('scanner_s3_location')
-    inventory_loc = data.get('inventory_s3_location')
+    """Run the threat model agent.
 
-    if not scanner_loc or not inventory_loc:
+    Request body:
+      {
+        "scanner_findings": { ... scanner JSON ... },
+        "inventory":        { ... inventory JSON ... },
+        "credentials":      { "provider": "...", ... }  # optional
+      }
+    """
+    data = request.json or {}
+    scanner_findings = data.get('scanner_findings')
+    inventory = data.get('inventory')
+    creds_data = data.get('credentials')
+
+    if not isinstance(scanner_findings, dict) or not scanner_findings:
         return jsonify({
             "status": "error",
-            "message": "Both scanner_s3_location and inventory_s3_location are required"
+            "message": "scanner_findings (object) is required"
+        }), 400
+    if not isinstance(inventory, dict) or not inventory:
+        return jsonify({
+            "status": "error",
+            "message": "inventory (object) is required"
         }), 400
 
     try:
-        result = asyncio.run(run_threat_model_workflow(scanner_loc, inventory_loc))
+        creds = ProviderCredentials.from_dict(creds_data) if creds_data else None
+    except ValueError as e:
+        return jsonify({"status": "error", "agent": "threat_model", "error": str(e)}), 400
+
+    try:
+        with run_scope():
+            scanner_path = save_input_payload("scanner_findings", scanner_findings)
+            inventory_path = save_input_payload("inventory", inventory)
+            with use_credentials(creds):
+                model = asyncio.run(run_threat_model_workflow(scanner_path, inventory_path))
         return jsonify({
             "status": "success",
             "agent": "threat_model",
-            "result": result
+            "threat_model": model,
         })
     except Exception as e:
         return jsonify({
@@ -238,9 +236,6 @@ if __name__ == "__main__":
         print(f"Starting Threat Model Agent HTTP server on port {port}")
         app.run(host='0.0.0.0', port=port, debug=False)
     else:
-        scanner_loc = os.environ.get('SCANNER_S3_LOCATION')
-        inventory_loc = os.environ.get('INVENTORY_S3_LOCATION')
-        if not scanner_loc or not inventory_loc:
-            print("ERROR: Set SCANNER_S3_LOCATION and INVENTORY_S3_LOCATION environment variables")
-            sys.exit(1)
-        asyncio.run(run_threat_model_workflow(scanner_loc, inventory_loc))
+        print("ERROR: threat_model_agent CLI mode requires scanner+inventory JSON inputs; "
+              "run it as an HTTP server (COMPASS_MODE=server) and POST to /run.")
+        sys.exit(1)
