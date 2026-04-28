@@ -60,3 +60,21 @@ variable "image_tag" {
   type        = string
   default     = "bootstrap"
 }
+
+variable "custom_domain" {
+  description = <<-EOT
+    Optional custom domain mapped to the api-gateway (e.g.
+    "app.compass-sec.app" or "compass-sec.app"). Empty string disables the
+    mapping — only the default *.run.app URL is reachable.
+
+    Cloud Run provisions a managed TLS cert for the domain free of charge.
+    After apply, `terraform output custom_domain_dns_records` prints the
+    DNS records you must add at your registrar to activate the cert.
+
+    Domain ownership must already be verified for your Google account
+    (automatic if it's your Workspace domain). Cert provisioning takes
+    ~15–60 minutes after the DNS records propagate.
+  EOT
+  type        = string
+  default     = ""
+}

@@ -57,3 +57,17 @@ output "service_urls" {
     syft-mcp           = module.cloud_run_syft_mcp.uri
   }
 }
+
+output "custom_domain_dns_records" {
+  description = <<-EOT
+    DNS records to add at your registrar after `terraform apply` so the
+    custom domain mapping starts serving. Empty when var.custom_domain is
+    unset. For each record, create that name/type/value at your DNS host.
+    Once propagation completes, Google provisions a managed TLS cert (~15–60
+    min) and the custom URL becomes reachable through IAP.
+  EOT
+  value = var.custom_domain != "" ? try(
+    google_cloud_run_domain_mapping.api_gateway[0].status[0].resource_records,
+    []
+  ) : []
+}

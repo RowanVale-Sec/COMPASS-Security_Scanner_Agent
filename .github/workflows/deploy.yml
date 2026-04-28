@@ -112,12 +112,13 @@ jobs:
 
       - name: Terraform apply
         working-directory: infra/terraform
-        # TF_VAR_additional_iap_users uses an env var (not -var) to avoid
-        # shell-quoting hell when the secret value contains JSON brackets and
-        # quotes. Terraform auto-reads TF_VAR_<name>. Defaults to [] when the
-        # secret isn't set (e.g. only the owner has access).
+        # TF_VAR_* env vars (not -var) avoid shell-quoting hell when secret
+        # values contain JSON brackets, quotes, dots, etc. Terraform auto-
+        # reads any TF_VAR_<name>. Each falls back to a safe default when
+        # the secret isn't set.
         env:
           TF_VAR_additional_iap_users: ${{ secrets.COMPASS_ADDITIONAL_IAP_USERS || '[]' }}
+          TF_VAR_custom_domain: ${{ secrets.COMPASS_CUSTOM_DOMAIN || '' }}
         run: |
           terraform apply -auto-approve -input=false \
             -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
