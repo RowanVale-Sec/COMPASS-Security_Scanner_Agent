@@ -1,0 +1,171 @@
+name: Deploy to GCP
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: {}
+
+# Required for Workload Identity Federation: GitHub mints an OIDC token,
+# google-github-actions/auth@v2 exchanges it for a 1-hour GCP credential.
+# No long-lived service-account JSON anywhere.
+permissions:
+  id-token: write
+  contents: read
+
+# Two pushes to master shouldn't race each other into terraform apply.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+env:
+  TF_VERSION: '1.7.5'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Build & push 7 images in parallel. Each matrix job builds one service.
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api-gateway
+            dockerfile: api_gateway/Dockerfile.cloud
+            context: .
+          - service: orchestrator
+            dockerfile: agents/orchestrator/Dockerfile
+            context: .
+          - service: scanner-agent
+            dockerfile: agents/scanner/Dockerfile
+            context: .
+          - service: inventory-agent
+            dockerfile: agents/inventory/Dockerfile
+            context: .
+          - service: threat-model-agent
+            dockerfile: agents/threat_model/Dockerfile
+            context: .
+          - service: mitre-mcp
+            dockerfile: mcp_servers/mitre/Dockerfile
+            context: ./mcp_servers/mitre
+          - service: syft-mcp
+            dockerfile: mcp_servers/syft/Dockerfile
+            context: .
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker auth for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/compass-${{ matrix.service }}/${{ matrix.service }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,scope=${{ matrix.service }},mode=max
+          provenance: false # smaller images, faster pushes; no SLSA needed for v1
+
+  # ---------------------------------------------------------------------------
+  # Roll the new image SHA across all 7 services in one terraform apply.
+  # ---------------------------------------------------------------------------
+  terraform-apply:
+    name: Terraform apply
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform init
+        working-directory: infra/terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-tfstate" \
+            -backend-config="prefix=compass/prod"
+
+      - name: Terraform apply
+        working-directory: infra/terraform
+        # TF_VAR_additional_iap_users uses an env var (not -var) to avoid
+        # shell-quoting hell when the secret value contains JSON brackets and
+        # quotes. Terraform auto-reads TF_VAR_<name>. Defaults to [] when the
+        # secret isn't set (e.g. only the owner has access).
+        env:
+          TF_VAR_additional_iap_users: ${{ secrets.COMPASS_ADDITIONAL_IAP_USERS || '[]' }}
+        run: |
+          terraform apply -auto-approve -input=false \
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="region=${{ secrets.GCP_REGION }}" \
+            -var="github_repo=${{ github.repository }}" \
+            -var="owner_email=${{ secrets.COMPASS_OWNER_EMAIL }}" \
+            -var="image_tag=${{ github.sha }}"
+
+      # The google provider's cloud_run_v2_service schema doesn't manage
+      # iap_enabled, so each terraform apply silently strips it back to false.
+      # Re-assert it via the REST API. Idempotent — no-op when already true.
+      - name: Ensure IAP is enabled on api-gateway
+        run: |
+          set -euo pipefail
+          TOKEN=$(gcloud auth print-access-token)
+          curl -fsS -X PATCH \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"iapEnabled": true}' \
+            "https://run.googleapis.com/v2/projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ secrets.GCP_REGION }}/services/compass-api-gateway?updateMask=iapEnabled" \
+            > /dev/null
+          echo "IAP re-asserted on compass-api-gateway"
+
+      # Smoke test that doesn't require bypassing IAP: just confirm Cloud Run
+      # accepted the new revision and is serving the SHA we just pushed.
+      # End-to-end testing through the IAP gate is a manual step (the deployer
+      # SA isn't in the IAP allowlist by design — only owner_email is).
+      - name: Verify deployed image SHA
+        working-directory: infra/terraform
+        run: |
+          set -euo pipefail
+
+          APP_URL=$(terraform output -raw app_url)
+          echo "App URL: $APP_URL"
+
+          for SERVICE in api-gateway orchestrator scanner-agent inventory-agent threat-model-agent mitre-mcp syft-mcp; do
+            DEPLOYED=$(gcloud run services describe "compass-$SERVICE" \
+              --region="${{ secrets.GCP_REGION }}" \
+              --project="${{ secrets.GCP_PROJECT_ID }}" \
+              --format='value(spec.template.spec.containers[0].image)')
+            echo "compass-$SERVICE => $DEPLOYED"
+            if [[ "$DEPLOYED" != *":${{ github.sha }}" ]]; then
+              echo "ERROR: compass-$SERVICE is still on a different image tag"
+              exit 1
+            fi
+          done
+
+          echo ""
+          echo "All 7 services rolled to ${{ github.sha }}."
+          echo "Open in a browser to verify the IAP gate + end-to-end flow:"
+          echo "  $APP_URL"

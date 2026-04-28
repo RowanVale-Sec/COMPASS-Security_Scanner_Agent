@@ -1,0 +1,21 @@
+# Copy to terraform.tfvars and fill in.
+# (terraform.tfvars itself is gitignored — these placeholders stay committed.)
+
+project_id  = "REPLACE_ME"                 # e.g. "compass-prod-12345"
+region      = "us-central1"
+github_repo = "RowanVale-Sec/COMPASS"
+github_ref  = "refs/heads/master"
+owner_email = "REPLACE_ME@example.com"     # the Google account allowed through IAP
+name_prefix = "compass"
+
+# Image tag for every Cloud Run service. Leave as "bootstrap" for the first
+# apply (uses Google's cloudrun/hello placeholder so PR 3 deploys cleanly).
+# PR 4's deploy workflow overrides this via -var on every push.
+image_tag = "bootstrap"
+
+# Extra Google accounts (beyond owner_email) allowed through IAP.
+# Add anyone here and `terraform apply` to grant access. Empty list = only owner.
+additional_iap_users = [
+  # "alice@gmail.com",
+  # "bob@example.com",
+]

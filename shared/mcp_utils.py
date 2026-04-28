@@ -19,12 +19,16 @@ from typing import Any, Dict, Optional
 
 
 @asynccontextmanager
-async def mcp_session(url: str):
+async def mcp_session(url: str, headers: Optional[Dict[str, str]] = None):
     """Yield an initialized `ClientSession` bound to the MCP server at `url`.
 
     The `streamablehttp_client` context manager yields a 3-tuple
     (read_stream, write_stream, get_session_id_callback); we discard the third
     because MITRE mapping does not need resumable session IDs.
+
+    `headers` is forwarded as additional HTTP headers on every request to the
+    server. On Cloud Run with `--no-allow-unauthenticated` callers must pass
+    `{'Authorization': 'Bearer <id_token>'}` here.
 
     `mcp` is imported lazily so test environments that only exercise the
     `call_tool_json` parser don't need the SDK installed.
@@ -32,7 +36,11 @@ async def mcp_session(url: str):
     from mcp import ClientSession
     from mcp.client.streamable_http import streamablehttp_client
 
-    async with streamablehttp_client(url) as (read_stream, write_stream, _):
+    client_kwargs: Dict[str, Any] = {}
+    if headers:
+        client_kwargs["headers"] = headers
+
+    async with streamablehttp_client(url, **client_kwargs) as (read_stream, write_stream, _):
         async with ClientSession(read_stream, write_stream) as session:
             await session.initialize()
             yield session

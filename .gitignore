@@ -27,6 +27,9 @@ api_gateway/__pycache__/
 *.swp
 *.swo
 
+# Claude Code local state (per-developer, not shared)
+.claude/
+
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -53,3 +56,17 @@ build/
 # Temporary files
 tmp/
 temp/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+**/tfplan
+crash.log
+crash.*.log
+
+# Real env-specific terraform inputs (the .example versions are committed).
+infra/terraform/environments/*/terraform.tfvars
+infra/terraform/environments/*/backend.tfvars

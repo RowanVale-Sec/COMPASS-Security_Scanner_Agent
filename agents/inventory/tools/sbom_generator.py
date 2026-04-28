@@ -10,6 +10,8 @@ import requests
 from typing import Annotated, Optional
 from pydantic import Field
 
+from shared.cloud_auth import auth_headers
+
 
 def generate_enhanced_sbom(
     folder_path: Annotated[str, Field(description="Path to the codebase to generate SBOM for")],
@@ -34,7 +36,8 @@ def generate_enhanced_sbom(
         response = requests.post(
             f"{syft_url}/analyze",
             json={"repo_path": folder_path, "output_format": "spdx-json"},
-            timeout=300
+            timeout=300,
+            headers=auth_headers(syft_url),
         )
         response.raise_for_status()
         result = response.json()

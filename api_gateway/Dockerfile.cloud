@@ -1,0 +1,42 @@
+# Cloud Run image for COMPASS api-gateway.
+#
+# Bundles the React SPA into the same image so a single Cloud Run service can
+# serve / (the SPA) and /api/* (FastAPI) under one origin — required for
+# Cloud IAP to gate everything behind one Google sign-in. The local
+# docker-compose path keeps using api_gateway/Dockerfile (FastAPI only) plus
+# the separate frontend/ nginx container.
+
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /build
+COPY frontend/package.json ./
+RUN npm install --no-audit --no-fund
+
+COPY frontend/ ./
+RUN npm run build
+
+# -----------------------------------------------------------------------------
+
+FROM python:3.12-slim
+
+# git: needed for repo clones during scan jobs (see app/github.py).
+# openssh-client: belt-and-braces for SSH-aware remotes even though the URL
+# validator only accepts HTTPS.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git openssh-client ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY api_gateway/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+COPY api_gateway/app /app/app
+
+# Drop the React build into the image and tell the FastAPI app to serve it.
+COPY --from=frontend-build /build/dist /app/static
+ENV COMPASS_STATIC_DIR=/app/static
+
+EXPOSE 8094
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8094", "--no-server-header"]

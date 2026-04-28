@@ -57,7 +57,13 @@ logger.setLevel(logging.INFO)
 
 
 WORKSPACE_ROOT = Path(os.environ.get("COMPASS_WORKSPACE_ROOT", "/workspace"))
-ALLOWED_ORIGIN = os.environ.get("COMPASS_ALLOWED_ORIGIN", "http://localhost:3000")
+# Comma-separated allowlist so the cloud frontend URL can be added alongside
+# the local dev origin without forcing a redeploy of the local config.
+ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get("COMPASS_ALLOWED_ORIGIN", "http://localhost:3000").split(",")
+    if o.strip()
+]
 
 
 limiter = Limiter(key_func=get_remote_address, default_limits=[])
@@ -68,7 +74,7 @@ app.state.limiter = limiter
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[ALLOWED_ORIGIN],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,  # we don't use cookies; tokens travel in body
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
@@ -259,3 +265,22 @@ async def download_bundle(job_id: str) -> Response:
             "Cache-Control": "no-store",
         },
     )
+
+
+# When deployed via api_gateway/Dockerfile.cloud, the React SPA is bundled
+# into /app/static and served from this same FastAPI process so a single
+# Cloud Run service can sit behind one Cloud IAP gate. Local docker-compose
+# runs the SPA from a separate nginx container, so this mount stays inert
+# unless COMPASS_STATIC_DIR points at an existing directory.
+#
+# Mounted at the end of the file so that explicit @app routes above
+# (/health, /api/*) win the route-match race before StaticFiles claims "/".
+_static_dir_env = os.environ.get("COMPASS_STATIC_DIR")
+if _static_dir_env:
+    _static_path = Path(_static_dir_env)
+    if _static_path.is_dir():
+        from fastapi.staticfiles import StaticFiles
+        app.mount("/", StaticFiles(directory=str(_static_path), html=True), name="spa")
+        logger.info("Serving SPA from %s at /", _static_path)
+    else:
+        logger.warning("COMPASS_STATIC_DIR=%s is set but the directory does not exist", _static_dir_env)

@@ -41,3 +41,6 @@ stix2>=3.0.1
 # MCP client
 mcp>=1.18.0
 httpx>=0.28.0
+
+# Cloud Run service-to-service auth (no-op locally)
+google-auth>=2.30.0

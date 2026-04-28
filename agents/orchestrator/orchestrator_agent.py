@@ -26,6 +26,7 @@ from flask import Flask, Response, request as flask_request, jsonify, stream_wit
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from shared.base_agent import get_scan_folder
+from shared.cloud_auth import auth_headers
 from shared.llm_provider import ProviderCredentials, get_provider, use_credentials
 
 try:
@@ -88,7 +89,12 @@ def _post_agent(
     print(f"[Orchestrator] -> {agent_label} {url} (keys: {echo_keys})")
 
     try:
-        response = requests.post(f"{url}/run", json=payload, timeout=timeout)
+        response = requests.post(
+            f"{url}/run",
+            json=payload,
+            timeout=timeout,
+            headers=auth_headers(url),
+        )
     except requests.exceptions.ConnectionError as exc:
         raise PipelineError(f"Cannot connect to {agent_label} at {url}: {exc}") from exc
     except requests.exceptions.Timeout as exc:

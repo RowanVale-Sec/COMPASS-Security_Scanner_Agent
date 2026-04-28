@@ -1,7 +1,16 @@
 # Threat Modeling Agent Framework
-## Architecture Extraction & Threat Scenario Generation
+
+> **Status: future direction, not implemented.**
+>
+> This document describes a 5-agent design (Code Intake, Semantic Classification, Data Flow Tracing, Architecture Synthesis, Threat Modeling) over a Microsoft Agent SDK orchestration with a MongoDB / Neo4j knowledge base. **None of that is in the current codebase.**
+>
+> What's actually implemented today is a 4-agent pipeline (Scanner, Inventory, Threat Model, Orchestrator) over Flask / FastAPI with HTTP request bodies as the message bus. See [docs/understand-it.md](../understand-it.md) for the architecture as built.
+>
+> This file is kept as the forward-looking design exploration — useful for thinking about the next iteration, not for understanding what runs today.
 
 ---
+
+## Architecture Extraction & Threat Scenario Generation
 
 ## Overview
 
