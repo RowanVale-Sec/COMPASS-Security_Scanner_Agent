@@ -26,11 +26,11 @@ resource "google_service_account" "deployer" {
 
 resource "google_project_iam_member" "deployer_roles" {
   for_each = toset([
-    "roles/run.admin",                       # create / update Cloud Run services
-    "roles/artifactregistry.writer",         # push images
-    "roles/iam.serviceAccountUser",          # act-as the runtime SAs at deploy time
-    "roles/iap.admin",                       # manage IAP gating in PR 3
-    "roles/storage.admin",                   # read/write Terraform state + workspace bucket
+    "roles/run.admin",               # create / update Cloud Run services
+    "roles/artifactregistry.writer", # push images
+    "roles/iam.serviceAccountUser",  # act-as the runtime SAs at deploy time
+    "roles/iap.admin",               # manage IAP gating in PR 3
+    "roles/storage.admin",           # read/write Terraform state + workspace bucket
     "roles/serviceusage.serviceUsageConsumer",
   ])
 

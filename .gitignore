@@ -27,6 +27,9 @@ api_gateway/__pycache__/
 *.swp
 *.swo
 
+# Claude Code local state (per-developer, not shared)
+.claude/
+
 # OS generated files
 .DS_Store
 .DS_Store?

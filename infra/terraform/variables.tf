@@ -57,6 +57,6 @@ variable "image_tag" {
     images are pushed. Set to a real git SHA / version once images live in
     Artifact Registry (PR 4's deploy.yml does this automatically).
   EOT
-  type    = string
-  default = "bootstrap"
+  type        = string
+  default     = "bootstrap"
 }

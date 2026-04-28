@@ -64,7 +64,7 @@ module "cloud_run_api_gateway" {
   timeout_seconds       = 3600
   cpu_boost             = true
   execution_environment = "EXECUTION_ENVIRONMENT_GEN2" # FUSE workspace mount needs Gen2
-  ingress               = "INGRESS_TRAFFIC_ALL" # public — IAP gates it (enabled out-of-band via `gcloud run services update --iap`)
+  ingress               = "INGRESS_TRAFFIC_ALL"        # public — IAP gates it (enabled out-of-band via `gcloud run services update --iap`)
   container_port        = local.service_ports["api-gateway"]
   session_affinity      = true # SSE stream must land on the instance that owns the JobRegistry entry
   workspace_bucket      = local.is_bootstrap ? "" : module.storage.workspace_bucket

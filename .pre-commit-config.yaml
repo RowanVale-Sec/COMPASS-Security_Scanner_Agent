@@ -1,0 +1,50 @@
+# Pre-commit hooks for COMPASS.
+#
+# One-time install (per checkout):
+#   pip install pre-commit && pre-commit install
+#
+# Then `git commit` automatically runs the checks below on changed files.
+# Run on demand:  pre-commit run --all-files
+
+# Don't scan dirs that aren't part of the project source.
+exclude: |
+  (?x)^(
+    \.claude/.* |
+    \.venv/.* |
+    .*/\.terraform/.*
+  )$
+
+repos:
+  # Terraform — auto-format .tf files. Catches the same drift that PR-check's
+  # `terraform fmt -check` enforces, so you don't push and find out 3 minutes
+  # later that CI failed on whitespace.
+  #
+  # Local hook (instead of antonbabenko/pre-commit-terraform) because that
+  # repo's bash wrappers mangle paths on Windows. This calls `terraform`
+  # directly — works on any OS as long as terraform is on PATH (true if your
+  # venv is activated, since .venv/Scripts holds it).
+  - repo: local
+    hooks:
+      - id: terraform-fmt
+        name: terraform fmt
+        # Look in the project's .venv first (where our binary lives) so the
+        # hook works whether or not the user has activated the venv before
+        # committing. Falls through to system PATH on non-Windows.
+        entry: bash -c 'export PATH="$PWD/.venv/Scripts:$PWD/.venv/bin:$PATH"; exec terraform fmt "$@"' --
+        language: system
+        files: \.tf$
+        pass_filenames: true
+
+  # Light hygiene — free wins, no friction.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        # Markdown uses trailing spaces for line breaks; preserve them.
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1024]

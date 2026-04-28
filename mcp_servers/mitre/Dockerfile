@@ -1,6 +1,6 @@
 # ==============================================================================
 # MITRE ATT&CK MCP Server - Production Dockerfile
-# 
+#
 # This Dockerfile clones the open-source mitre-mcp repository and builds
 # a minimal production image with only necessary runtime artifacts.
 # ==============================================================================
