@@ -19,3 +19,14 @@ additional_iap_users = [
   # "alice@gmail.com",
   # "bob@example.com",
 ]
+
+# Optional custom domain for the api-gateway. Empty = use the default
+# *.run.app URL only.
+#
+# Subdomain (recommended): "app.example.com"  → DNS gets one CNAME record
+# Apex:                    "example.com"      → DNS gets 4 A + 4 AAAA records
+#
+# After apply, run `terraform output custom_domain_dns_records` to see the
+# exact records to add at your registrar. Cert is auto-provisioned by Google
+# once DNS resolves (~15–60 min).
+custom_domain = ""

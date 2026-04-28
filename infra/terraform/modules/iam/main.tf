@@ -26,12 +26,19 @@ resource "google_service_account" "deployer" {
 
 resource "google_project_iam_member" "deployer_roles" {
   for_each = toset([
-    "roles/run.admin",               # create / update Cloud Run services
-    "roles/artifactregistry.writer", # push images
-    "roles/iam.serviceAccountUser",  # act-as the runtime SAs at deploy time
-    "roles/iap.admin",               # manage IAP gating in PR 3
-    "roles/storage.admin",           # read/write Terraform state + workspace bucket
-    "roles/serviceusage.serviceUsageConsumer",
+    # Resource-management roles (manage what terraform creates)
+    "roles/run.admin",              # create / update Cloud Run services
+    "roles/artifactregistry.admin", # create repos + push images
+    "roles/storage.admin",          # state bucket + workspace bucket
+    "roles/iap.admin",              # IAP IAM bindings on services
+
+    # Meta-permissions — terraform needs these on every apply just to refresh
+    # state and reconcile resources it manages
+    "roles/resourcemanager.projectIamAdmin", # read/write project-level IAM bindings (incl. its own)
+    "roles/iam.serviceAccountAdmin",         # create/manage runtime SAs + the deployer's own WIF binding
+    "roles/iam.serviceAccountUser",          # act-as the runtime SAs when deploying Cloud Run
+    "roles/iam.workloadIdentityPoolAdmin",   # manage the WIF pool + provider
+    "roles/serviceusage.serviceUsageAdmin",  # enable required APIs (google_project_service)
   ])
 
   project = var.project_id

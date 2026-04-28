@@ -84,6 +84,7 @@ Set each key as a GitHub repo secret under **Settings → Secrets and variables 
 | `GCP_DEPLOY_SERVICE_ACCOUNT` | yes | Email of the deployer SA the WIF impersonates. |
 | `COMPASS_OWNER_EMAIL` | yes | Your Google account email. The deploy workflow passes this to `terraform apply` so the IAP allowlist re-applies on every deploy. |
 | `COMPASS_ADDITIONAL_IAP_USERS` | optional | JSON array of extra Google accounts allowed through IAP. Empty/unset = only the owner. Format: `["alice@gmail.com","bob@example.com"]`. To add/remove a user, edit this secret and trigger a deploy — CI re-applies the allowlist on every push to master. |
+| `COMPASS_CUSTOM_DOMAIN` | optional | Custom domain mapped to api-gateway, e.g. `app.compass-sec.app`. Empty/unset = default `*.run.app` URL only. Cloud Run provisions a managed TLS cert automatically. After first apply with this set, run `terraform output custom_domain_dns_records` and add the printed records at your DNS registrar — cert provisioning starts once DNS resolves (~15–60 min). |
 
 No long-lived service-account JSON is needed anywhere — GitHub Actions mints a fresh OIDC token per run and exchanges it for a 1-hour GCP credential via Workload Identity Federation. The WIF provider's `attribute_condition` is locked to `RowanVale-Sec/COMPASS` on `refs/heads/master`, so even a leaked workflow on a fork can't impersonate the deployer.
 
