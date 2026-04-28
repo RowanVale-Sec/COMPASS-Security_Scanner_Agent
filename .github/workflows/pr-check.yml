@@ -1,0 +1,60 @@
+name: PR check
+
+on:
+  pull_request:
+    branches: [master]
+
+# No GCP auth needed — these checks don't touch state or push images.
+permissions:
+  contents: read
+
+env:
+  TF_VERSION: '1.7.5'
+
+jobs:
+  terraform:
+    name: Terraform fmt + validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: terraform fmt -check
+        working-directory: infra/terraform
+        run: terraform fmt -check -recursive -diff
+
+      - name: terraform validate
+        working-directory: infra/terraform
+        run: |
+          # No backend init: validate is offline and doesn't need state.
+          terraform init -backend=false -input=false
+          terraform validate
+
+  dockerfiles:
+    name: Dockerfile lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dockerfile:
+          - api_gateway/Dockerfile
+          - api_gateway/Dockerfile.cloud
+          - frontend/Dockerfile
+          - agents/orchestrator/Dockerfile
+          - agents/scanner/Dockerfile
+          - agents/inventory/Dockerfile
+          - agents/threat_model/Dockerfile
+          - mcp_servers/mitre/Dockerfile
+          - mcp_servers/syft/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+          # Don't fail on style suggestions; only on real issues. Bumping the
+          # threshold keeps the gate useful without being a maintenance pit.
+          failure-threshold: error

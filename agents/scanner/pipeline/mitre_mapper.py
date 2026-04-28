@@ -24,6 +24,7 @@ from typing import Annotated, Any, Dict, List, Optional
 
 from pydantic import Field
 
+from shared.cloud_auth import auth_headers
 from shared.llm_provider import get_provider
 from shared.mcp_utils import mcp_session, call_tool_json
 from shared.local_store import load_json, save_json
@@ -237,7 +238,7 @@ async def analyze_findings_with_mitre(
     provider = get_provider()
 
     print(f"[MITRE] Connecting to MCP server at {mitre_mcp_url}")
-    async with mcp_session(mitre_mcp_url) as session:
+    async with mcp_session(mitre_mcp_url, headers=auth_headers(mitre_mcp_url)) as session:
         print("[MITRE] MCP connected. Loading technique cache...")
         technique_cache = await _load_technique_cache(session)
         print(f"[MITRE] Cached {len(technique_cache)} techniques. Starting {total_findings} concurrent analyses...")

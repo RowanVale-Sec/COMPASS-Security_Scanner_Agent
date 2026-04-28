@@ -53,3 +53,17 @@ build/
 # Temporary files
 tmp/
 temp/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+**/tfplan
+crash.log
+crash.*.log
+
+# Real env-specific terraform inputs (the .example versions are committed).
+infra/terraform/environments/*/terraform.tfvars
+infra/terraform/environments/*/backend.tfvars

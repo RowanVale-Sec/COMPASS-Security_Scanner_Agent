@@ -1,0 +1,6 @@
+# Copy to backend.tfvars and fill in.
+# Use the bucket name printed by infra/bootstrap.{sh,ps1}.
+# (backend.tfvars itself is gitignored.)
+
+bucket = "REPLACE_ME-tfstate"
+prefix = "compass/prod"

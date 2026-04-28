@@ -16,6 +16,8 @@ from typing import Any, AsyncIterator, Dict, Optional
 
 import httpx
 
+from .cloud_auth import auth_headers
+
 ORCHESTRATOR_URL = os.environ.get("ORCHESTRATOR_URL", "http://orchestrator:8093")
 STREAM_TIMEOUT_S = int(os.environ.get("ORCHESTRATOR_STREAM_TIMEOUT_S", "3600"))
 
@@ -33,13 +35,15 @@ async def stream_pipeline(
     if credentials:
         payload["credentials"] = credentials
 
+    headers = {"Accept": "text/event-stream", **auth_headers(ORCHESTRATOR_URL)}
+
     timeout = httpx.Timeout(STREAM_TIMEOUT_S, connect=30.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
         async with client.stream(
             "POST",
             f"{ORCHESTRATOR_URL}/run/stream",
             json=payload,
-            headers={"Accept": "text/event-stream"},
+            headers=headers,
         ) as response:
             if response.status_code >= 400:
                 body = await response.aread()

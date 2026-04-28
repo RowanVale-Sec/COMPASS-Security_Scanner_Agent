@@ -25,3 +25,6 @@ python-dotenv>=1.1.0
 
 # Web Framework (HTTP API)
 flask>=3.0.0
+
+# Cloud Run service-to-service auth (no-op locally)
+google-auth>=2.30.0
